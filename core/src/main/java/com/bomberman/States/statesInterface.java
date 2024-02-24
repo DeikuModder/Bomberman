@@ -9,7 +9,6 @@ package com.bomberman.States;
  * @author gabri
  */
 public interface statesInterface {
-    public void create();
     public void render();
     public void dispose();
 }

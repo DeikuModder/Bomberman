@@ -4,21 +4,24 @@
  */
 package com.bomberman.States;
 
+import com.bomberman.Entities.Block;
+
 /**
  *
  * @author gabri
  */
 public class PlayState implements statesInterface {
+    private Block block;
     
-    public void create() {
-        
+    public PlayState() {
+        block = new Block("block.png");
     }
     
     public void render() {
-        
+        block.render();
     }
     
     public void dispose() {
-        
+        block.dispose();
     }
 }
