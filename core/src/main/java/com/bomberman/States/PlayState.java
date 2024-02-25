@@ -4,24 +4,24 @@
  */
 package com.bomberman.States;
 
-import com.bomberman.Entities.Block;
+import com.bomberman.Scenario.TileMap;
 
 /**
  *
  * @author gabri
  */
 public class PlayState implements statesInterface {
-    private Block block;
-    
+    TileMap tileMap;
+            
     public PlayState() {
-        block = new Block("block.png");
+        tileMap = new TileMap();
     }
     
     public void render() {
-        block.render();
+        tileMap.render();
     }
     
     public void dispose() {
-        block.dispose();
+        tileMap.dispose();
     }
 }
