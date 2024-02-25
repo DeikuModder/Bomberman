@@ -2,9 +2,8 @@ package com.bomberman;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.PerspectiveCamera;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.bomberman.States.PlayState;
@@ -12,13 +11,14 @@ import com.bomberman.States.PlayState;
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class Bomberman extends ApplicationAdapter {
     private PlayState playState;
-    private Camera camera;
+    private OrthographicCamera camera;
     private Viewport viewport;
+    private final ConstantValues constValues = new ConstantValues();
 
     @Override
     public void create() {
-        camera = new PerspectiveCamera();
-        viewport = new FitViewport(800, 600, camera);
+        camera = new OrthographicCamera();
+        viewport = new FitViewport(constValues.WINDOW_WIDTH, constValues.WINDOW_HEIGHT, camera);
         playState = new PlayState();
     }
 
@@ -30,6 +30,7 @@ public class Bomberman extends ApplicationAdapter {
         playState.render();
     }
     
+    @Override
     public void resize(int width, int height) {
         viewport.update(width, height);
     }
