@@ -8,7 +8,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
-
+import com.bomberman.ConstantValues;
 
 /**
  *
@@ -18,16 +18,23 @@ public class Block {
     private final Texture blockSprite;
     private final SpriteBatch batch;
     private final Rectangle block;
+    private final ConstantValues constValues = new ConstantValues();
+    private boolean isCollidable;
+    public int x;
+    public int y;
     
-    public Block(String spritePath) {
+    public Block(String spritePath, int x, int y, boolean isCollidable) {
         this.batch = new SpriteBatch();
         this.blockSprite = new Texture(Gdx.files.internal(spritePath));
         this.block = new Rectangle();
+        this.isCollidable = isCollidable;
+        this.x = x;
+        this.y = y;
         
-        block.x = 800 /2 - 64 -2;
-        block.y = 20;
-        block.height = 64;
-        block.width = 64;
+        block.x = x;
+        block.y = y;
+        block.height = constValues.BLOCK_SIZE;
+        block.width = constValues.BLOCK_SIZE;
     }
     
     public void render() {
