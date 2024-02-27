@@ -19,13 +19,13 @@ public class Block {
     private final SpriteBatch batch;
     private final Rectangle block;
     private final ConstantValues constValues = new ConstantValues();
-    private boolean isCollidable;
+    public boolean isCollidable;
     public int x;
     public int y;
     
     public Block(String spritePath, int x, int y, boolean isCollidable) {
         this.batch = new SpriteBatch();
-        this.blockSprite = new Texture(Gdx.files.internal(spritePath));
+        this.blockSprite = new Texture(spritePath);
         this.block = new Rectangle();
         this.isCollidable = isCollidable;
         this.x = x;
