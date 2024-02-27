@@ -11,5 +11,5 @@ package com.bomberman;
 public class ConstantValues {
     public int WINDOW_WIDTH = 832;
     public int WINDOW_HEIGHT = 640;
-    public int BLOCK_SIZE = 64;
+    public int BLOCK_SIZE = 32;
 }
