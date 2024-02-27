@@ -5,6 +5,7 @@
 package com.bomberman.Scenario;
 
 import com.bomberman.Entities.Block;
+import com.bomberman.ConstantValues;
 
 /**
  *
@@ -12,13 +13,15 @@ import com.bomberman.Entities.Block;
  */
 public class Row {
     Block[] tiles;
+    private final ConstantValues constantValues = new ConstantValues();
     
     public Row(int length, int x, int y, String sprite, boolean isCollidable) {
         tiles = new Block[length];
         
         for (int i = 0; i < length; i++){
             tiles[i] = new Block(sprite, x, y, isCollidable);
-            x += 64;
+            //add the size of the block each loop to move the origin in x of the block
+            x += constantValues.BLOCK_SIZE;
         }
     }
     
