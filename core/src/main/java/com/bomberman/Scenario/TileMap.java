@@ -109,19 +109,15 @@ public class TileMap extends TiledMap{
      * True if the tile is Coliidable, false otherwise
      */
     public boolean isCollidable(int x, int y) {
-        boolean collidable = false;
-        
-        for (Row gridRow : gridBlockArr){
-            for (Block tile : gridRow.tiles){
-                if (tile.x == x && tile.y == y){
-                    if (tile.isCollidable){
-                        collidable = true;
-                    }
-                }
-            }
+        int tileX = x / constantValues.BLOCK_SIZE;
+        int tileY = y / constantValues.BLOCK_SIZE;
+    
+        if (tileX < 0 || tileX >= amountOfXBlocks || tileY < 0 || tileY >= amountOfYBlocks) {
+            // Fuera de los límites del tilemap
+            return false; // o lanza una excepción
         }
-        
-        return collidable;
+    
+        return gridBlockArr[tileY].tiles[tileX].isCollidable;
     }
     
     public void dispose() {
