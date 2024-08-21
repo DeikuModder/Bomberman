@@ -4,6 +4,7 @@
  */
 package com.bomberman.Scenario;
 
+import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.bomberman.ConstantValues;
 import com.bomberman.Entities.Block;
 
@@ -11,7 +12,7 @@ import com.bomberman.Entities.Block;
  *
  * @author gabri
  */
-public class TileMap {
+public class TileMap extends TiledMap{
     private final ConstantValues constantValues = new ConstantValues();
     private final int amountOfXBlocks = constantValues.WINDOW_WIDTH / constantValues.BLOCK_SIZE;
     private final int amountOfYBlocks = constantValues.WINDOW_HEIGHT / constantValues.BLOCK_SIZE;
@@ -127,5 +128,32 @@ public class TileMap {
         for (Row gridRow : gridBlockArr){
            gridRow.dispose();
        }
+    }
+    
+    public Block getTile(int x, int y) {
+        int tileX = x / constantValues.BLOCK_SIZE;
+        int tileY = y / constantValues.BLOCK_SIZE;
+        
+        if (tileX < 0 || tileX >= amountOfXBlocks || tileY < 0 || tileY >= amountOfYBlocks) {
+            return null; // Fuera de los límites del tilemap
+        }
+        
+        return gridBlockArr[tileY].tiles[tileX];
+    }
+
+    public int getWidth() {
+        return amountOfXBlocks;
+    }
+
+    public int getHeight() {
+        return amountOfYBlocks;
+    }
+
+    public int getTileWidth() {
+        return constantValues.BLOCK_SIZE;
+    }
+
+    public int getTileHeight() {
+        return constantValues.BLOCK_SIZE;
     }
 }

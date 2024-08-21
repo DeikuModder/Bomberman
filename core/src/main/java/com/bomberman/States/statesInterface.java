@@ -9,6 +9,7 @@ package com.bomberman.States;
  * @author gabri
  */
 public interface statesInterface {
+    public void update(float deltaTime);
     public void render();
     public void dispose();
 }
