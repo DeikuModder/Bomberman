@@ -120,6 +120,8 @@ public class Player extends Actor implements Disposable{
         moveDown();
         playerAnimation = downAnimation;
     }
+     // Update actor position
+    setPosition(getX() + velocity.x * delta, getY() + velocity.y * delta);
 }
 
     private void moveRight() {
@@ -153,27 +155,27 @@ public class Player extends Actor implements Disposable{
     }
 
     private boolean canMoveRight() {
-        int tileX = (int) (position.x + velocity.x) / tileMap.getTileWidth();
-        int tileY = (int) position.y / tileMap.getTileHeight();
-        return !tileMap.isCollidable(tileX, tileY);
+        int newX = (int) (position.x + velocity.x);
+        int newY = (int) position.y;
+        return !tileMap.isCollidable(newX, newY);
     }
     
     private boolean canMoveLeft() {
-        int tileX = (int) (position.x - velocity.x) / tileMap.getTileWidth();
-        int tileY = (int) position.y / tileMap.getTileHeight();
-        return !tileMap.isCollidable(tileX, tileY);
+        int newX = (int) (position.x - velocity.x);
+        int newY = (int) position.y;
+        return !tileMap.isCollidable(newX, newY);
     }
     
     private boolean canMoveUp() {
-        int tileX = (int) position.x / tileMap.getTileWidth();
-        int tileY = (int) (position.y + velocity.y) / tileMap.getTileHeight();
-        return !tileMap.isCollidable(tileX, tileY);
+        int newX = (int) position.x;
+        int newY = (int) (position.y + velocity.y);
+        return !tileMap.isCollidable(newX, newY);
     }
     
     private boolean canMoveDown() {
-        int tileX = (int) position.x / tileMap.getTileWidth();
-        int tileY = (int) (position.y - velocity.y) / tileMap.getTileHeight();
-        return !tileMap.isCollidable(tileX, tileY);
+        int newX = (int) position.x;
+        int newY = (int) (position.y - velocity.y);
+        return !tileMap.isCollidable(newX, newY);
     }
 
     @Override
