@@ -13,6 +13,7 @@ import com.bomberman.Scenario.TileMap;
 
 
 public class Player extends Actor implements Disposable{
+    private Bomb currentBomb; // Bomba actual colocada por el jugador
     private Texture player;
     private Animation<TextureRegion> playerAnimation;
     private Animation<TextureRegion> rightAnimation;
@@ -99,6 +100,14 @@ public class Player extends Actor implements Disposable{
     }
     downAnimation = new Animation<>(0.3f, frames);
 }
+    public Bomb placeBomb() {
+        if (currentBomb == null) {
+            currentBomb = new Bomb(new Texture("Bombs.png"));
+            currentBomb.setPosition(getX(), getY());
+            return currentBomb;
+         }
+        return null;
+    }
 
     @Override
     public void act(float delta) {
@@ -122,6 +131,11 @@ public class Player extends Actor implements Disposable{
     }
      // Update actor position
     setPosition(getX() + velocity.x * delta, getY() + velocity.y * delta);
+
+    if (currentBomb != null && currentBomb.isExploded) {
+        currentBomb.remove();
+        currentBomb = null;
+    }
 }
 
     private void moveRight() {

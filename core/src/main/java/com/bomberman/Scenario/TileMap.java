@@ -4,21 +4,23 @@
  */
 package com.bomberman.Scenario;
 
-import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.bomberman.ConstantValues;
 import com.bomberman.Entities.Block;
+import com.bomberman.Entities.Bomb;
+import java.util.ArrayList;
 
 /**
  *
  * @author gabri
  */
-public class TileMap extends TiledMap{
+public class TileMap {
     private final ConstantValues constantValues = new ConstantValues();
     private final int amountOfXBlocks = constantValues.WINDOW_WIDTH / constantValues.BLOCK_SIZE;
     private final int amountOfYBlocks = constantValues.WINDOW_HEIGHT / constantValues.BLOCK_SIZE;
     private final Row[] gridBlockArr;
     private final String spriteBlockTexture = "blockx32.png";
     private final String spriteEmptyTexture = "groundx32.png";
+    private ArrayList<Bomb> bombs = new ArrayList<Bomb>();
     
     public TileMap() {
         int yTileOrigin = 0;
@@ -99,6 +101,8 @@ public class TileMap extends TiledMap{
        }
     }
     
+    
+    
     /**
      * 
      * @param x
@@ -151,5 +155,20 @@ public class TileMap extends TiledMap{
 
     public int getTileHeight() {
         return constantValues.BLOCK_SIZE;
+    }
+
+    public void addBomb(Bomb bomb) {
+        bombs.add(bomb);
+    }
+
+    public void update(float dt) {
+        for (Bomb bomb : bombs) {
+            bomb.update(dt);
+        }
+      
+    }
+
+    public Bomb[] getBombs() {
+        return bombs.toArray(new Bomb[bombs.size()]);
     }
 }

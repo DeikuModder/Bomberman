@@ -9,7 +9,7 @@ package com.bomberman;
  * @author gabri
  */
 public class ConstantValues {
-    public int WINDOW_WIDTH = 832;
-    public int WINDOW_HEIGHT = 640;
+    public static int WINDOW_WIDTH = 832;
+    public static int WINDOW_HEIGHT = 640;
     public int BLOCK_SIZE = 32;
 }
