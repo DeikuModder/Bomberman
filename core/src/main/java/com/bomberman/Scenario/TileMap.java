@@ -7,168 +7,104 @@ package com.bomberman.Scenario;
 import com.bomberman.ConstantValues;
 import com.bomberman.Entities.Block;
 import com.bomberman.Entities.Bomb;
-import java.util.ArrayList;
+import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TiledMapTile;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
+import com.badlogic.gdx.maps.tiled.TmxMapLoader;
+import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.utils.Array;
 
-/**
- *
- * @author gabri
- */
 public class TileMap {
-    private final ConstantValues constantValues = new ConstantValues();
-    private final int amountOfXBlocks = constantValues.WINDOW_WIDTH / constantValues.BLOCK_SIZE;
-    private final int amountOfYBlocks = constantValues.WINDOW_HEIGHT / constantValues.BLOCK_SIZE;
-    private final Row[] gridBlockArr;
-    private final String spriteBlockTexture = "blockx32.png";
-    private final String spriteEmptyTexture = "groundx32.png";
-    private ArrayList<Bomb> bombs = new ArrayList<Bomb>();
+    private TiledMap map;
+    private OrthogonalTiledMapRenderer mapRenderer;
+    private Array<Rectangle> collisionRectangles;
+    private ShapeRenderer shapeRenderer; // Para depuración visual
+
+    public TileMap(String mapPath) {
+        map = new TmxMapLoader().load(mapPath);
+        mapRenderer = new OrthogonalTiledMapRenderer(map);
+        collisionRectangles = new Array<>();
+        shapeRenderer = new ShapeRenderer(); // Inicializar el ShapeRenderer para depuración
+        loadCollisions();
+    }
+    private void loadCollisions() {
+        // Obtén la capa de bloques con colisiones
+        TiledMapTileLayer collisionLayer = (TiledMapTileLayer) map.getLayers().get("blocks");
     
-    public TileMap() {
-        int yTileOrigin = 0;
-        int xTileOrigin = 0;
-        gridBlockArr = new Row[amountOfYBlocks];
-        
-        //first fill the map with collidable blocks
-        for (int i = 0; i < amountOfYBlocks; i++){
-            gridBlockArr[i] = new Row(amountOfXBlocks, xTileOrigin, yTileOrigin, spriteBlockTexture, true);
-            yTileOrigin += constantValues.BLOCK_SIZE;
-        }
-        
-        //reset y and x origin back to 0 after each loop
-        
-        yTileOrigin = 0;
-        xTileOrigin = 0;
-        
-        //then create the empty spaces
-        
-        //empty down path
-        for (int i = 1; i < amountOfXBlocks - 1; i++){
-            int x = gridBlockArr[1].tiles[i].x;
-            int y = gridBlockArr[1].tiles[i].y;
-            
-            gridBlockArr[1].tiles[i] = new Block(spriteEmptyTexture, x, y, false);
-            x += constantValues.BLOCK_SIZE;
-        }
-        
-        //empty upper path
-        for (int i = 1; i < amountOfXBlocks - 1; i++){
-            int x = gridBlockArr[amountOfYBlocks - 2].tiles[i].x;
-            int y = gridBlockArr[amountOfYBlocks - 2].tiles[i].y;
-            
-            gridBlockArr[amountOfYBlocks - 2].tiles[i] = new Block(spriteEmptyTexture, x, y, false);
-            x += constantValues.BLOCK_SIZE;
-        }
-        
-        //fill the inner empty space
-        for (int i = 3; i < amountOfYBlocks - 3; i++){
-            for (int j = 3; j < amountOfXBlocks - 3; j++){
-                
-                gridBlockArr[i].tiles[j] = new Block(spriteEmptyTexture, xTileOrigin + (constantValues.BLOCK_SIZE * 3), yTileOrigin + constantValues.BLOCK_SIZE * 3, false);
-                xTileOrigin += constantValues.BLOCK_SIZE;
+        // Verifica que la capa exista
+        if (collisionLayer != null) {
+            int tileWidth = (int) collisionLayer.getTileWidth();
+            int tileHeight = (int) collisionLayer.getTileHeight();
+    
+            // Recorre toda la capa de colisiones
+            for (int x = 0; x < collisionLayer.getWidth(); x++) {
+                for (int y = 0; y < collisionLayer.getHeight(); y++) {
+                    TiledMapTileLayer.Cell cell = collisionLayer.getCell(x, y);
+    
+                    // Si la celda no es nula y contiene un tile con valor colisionable (ID = 2)
+                    if (cell != null && cell.getTile() != null) {
+                        TiledMapTile tile = cell.getTile();
+                        int tileId = tile.getId();
+    
+                        // Los tiles con ID 2 son los colisionables
+                        if (tileId == 2) {
+                            Rectangle rectangle = new Rectangle(x * tileWidth, y * tileHeight, tileWidth, tileHeight);
+                            collisionRectangles.add(rectangle);
+                            System.out.println("Collision rectangle added at: " + rectangle);
+                        }
+                    }
+                }
             }
-            xTileOrigin = 0;
-            yTileOrigin += constantValues.BLOCK_SIZE;
         }
-        
-        yTileOrigin = 0;
-        xTileOrigin = 0;
-        
-        //empty left path
-        for (int i = 2; i < amountOfYBlocks - 2; i++){
-            int x = gridBlockArr[i].tiles[1].x;
-            int y = gridBlockArr[i].tiles[1].y;
-            
-            gridBlockArr[i].tiles[1] = new Block(spriteEmptyTexture, x, y, false);
-            y += constantValues.BLOCK_SIZE;
-        }
-     
-        //empty right path
-        for (int i = 2; i < amountOfYBlocks - 2; i++){
-            int x = gridBlockArr[i].tiles[amountOfXBlocks - 2].x;
-            int y = gridBlockArr[i].tiles[amountOfXBlocks - 2].y;
-            
-            gridBlockArr[i].tiles[amountOfXBlocks - 2] = new Block(spriteEmptyTexture, x, y, false);
-            y += constantValues.BLOCK_SIZE;
-        }
-        /*
-        Ejemplo de como acceder a un tile desde aqui:
-        gridBlockArr[0].tiles[0] = El tile con origen 0,0 en coordenadas, siendo en este caso Y, X el orden.
-        */
     }
+
+   public void render(SpriteBatch batch, OrthographicCamera camera) {
+    batch.setProjectionMatrix(camera.combined);
+    mapRenderer.setView(camera);
     
-    public void render() {
-       for (Row gridRow : gridBlockArr){
-           gridRow.render();
-       }
+    // Renderiza el mapa
+    batch.begin();
+    mapRenderer.render();
+    batch.end();
+
+    // Dibujar los rectángulos de colisión
+    shapeRenderer.setProjectionMatrix(camera.combined);
+    shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+    shapeRenderer.setColor(Color.RED); // Rojo para colisiones
+    for (Rectangle rect : collisionRectangles) {
+        shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height);
     }
-    
-    
-    
-    /**
-     * 
-     * @param x
-     * Position in X that needs to be checked
-     * @param y
-     * Position in Y that needs to be checked
-     * @return 
-     * True if the tile is Coliidable, false otherwise
-     */
-    public boolean isCollidable(int x, int y) {
-        int tileX = x / constantValues.BLOCK_SIZE;
-        int tileY = y / constantValues.BLOCK_SIZE;
-    
-        if (tileX < 0 || tileX >= amountOfXBlocks || tileY < 0 || tileY >= amountOfYBlocks) {
-            // Fuera de los límites del tilemap
-            return false; // o lanza una excepción
+    shapeRenderer.end();
+}
+
+public boolean checkCollision(Rectangle objectBounds) {
+    for (Rectangle rect : collisionRectangles) {
+        if (objectBounds.overlaps(rect)) {
+            return true;
         }
-    
-        return gridBlockArr[tileY].tiles[tileX].isCollidable;
     }
-    
+    return false;
+}
+
     public void dispose() {
-        for (Row gridRow : gridBlockArr){
-           gridRow.dispose();
-       }
-    }
-    
-    public Block getTile(int x, int y) {
-        int tileX = x / constantValues.BLOCK_SIZE;
-        int tileY = y / constantValues.BLOCK_SIZE;
-        
-        if (tileX < 0 || tileX >= amountOfXBlocks || tileY < 0 || tileY >= amountOfYBlocks) {
-            return null; // Fuera de los límites del tilemap
-        }
-        
-        return gridBlockArr[tileY].tiles[tileX];
+        map.dispose();
+        mapRenderer.dispose();
+        shapeRenderer.dispose(); // Liberar recursos del ShapeRenderer
     }
 
     public int getWidth() {
-        return amountOfXBlocks;
+        int tileSize = (int) map.getProperties().get("tilewidth");
+        int mapWidthInTiles = (int) map.getProperties().get("width");
+        return mapWidthInTiles * tileSize;
     }
-
     public int getHeight() {
-        return amountOfYBlocks;
-    }
-
-    public int getTileWidth() {
-        return constantValues.BLOCK_SIZE;
-    }
-
-    public int getTileHeight() {
-        return constantValues.BLOCK_SIZE;
-    }
-
-    public void addBomb(Bomb bomb) {
-        bombs.add(bomb);
-    }
-
-    public void update(float dt) {
-        for (Bomb bomb : bombs) {
-            bomb.update(dt);
-        }
-      
-    }
-
-    public Bomb[] getBombs() {
-        return bombs.toArray(new Bomb[bombs.size()]);
+        int tileSize = (int) map.getProperties().get("tileheight");
+        int mapHeightInTiles = (int) map.getProperties().get("height");
+        return mapHeightInTiles * tileSize;
     }
 }

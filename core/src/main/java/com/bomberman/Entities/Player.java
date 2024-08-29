@@ -6,14 +6,15 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Disposable;
 import com.bomberman.Scenario.TileMap;
 
 
-public class Player extends Actor implements Disposable{
-    private Bomb currentBomb; // Bomba actual colocada por el jugador
+public class Player extends Actor implements Disposable {
+    private Bomb currentBomb;
     private Texture player;
     private Animation<TextureRegion> playerAnimation;
     private Animation<TextureRegion> rightAnimation;
@@ -26,26 +27,45 @@ public class Player extends Actor implements Disposable{
     private Texture downTexture;
     private float stateTime;
     private Vector2 position;
-    private Vector2 velocity;
+    
     private TileMap tileMap;
-    private float speed = 5f;
+    private float speed = 300f; // velocidad del personaje (píxeles por segundo)
+    private float targetX, targetY; // posición objetivo del personaje
     private float width;
     private float height;
+    private int gridX;
+    private int gridY;
+    private final float GRID_SIZE = 32;
+    private boolean isMoving = false;
+    
+    
+    private Rectangle playerBounds; // Rectángulo del jugador para colisiones
 
     public Player(Texture texture, TileMap tileMap, float x, float y) {
         this.player = texture;
         this.tileMap = tileMap;
         position = new Vector2(x, y);
-        velocity = new Vector2(speed, speed);
         rightTexture = new Texture("bomberman-sprite-2.png");
         leftTexture = new Texture("bomberman-sprite-4.png");
         upTexture = new Texture("bomberman-sprite-1.png");
         downTexture = new Texture("bomberman-sprite-3.png");
         this.width = 32; // Establece el ancho de la textura
         this.height = 32; // Establece el alto de la textura
+    
+        // Alinea la posición inicial a la cuadrícula
+        gridX = (int) (x / GRID_SIZE);
+        gridY = (int) (y / GRID_SIZE);
+        position.x = gridX * GRID_SIZE;
+        position.y = gridY * GRID_SIZE;
+    
+        targetX = position.x; // Inicializa targetX y targetY para evitar movimientos erráticos
+        targetY = position.y;
+
+         // Inicializa el área de colisión del jugador
+         playerBounds = new Rectangle(position.x, position.y, width, height);
 
         // Create animations
-        TextureRegion[][] temp = new TextureRegion(player).split(player.getWidth() / 4, player.getHeight());
+        TextureRegion[][] temp = new TextureRegion(player).split(player.getWidth() , player.getHeight());
         TextureRegion[] frames = new TextureRegion[temp.length * temp[0].length];
         int index = 0;
         for (int i = 0; i < temp.length; i++) {
@@ -100,67 +120,85 @@ public class Player extends Actor implements Disposable{
     }
     downAnimation = new Animation<>(0.3f, frames);
 }
-    public Bomb placeBomb() {
-        if (currentBomb == null) {
-            currentBomb = new Bomb(new Texture("Bombs.png"));
-            currentBomb.setPosition(getX(), getY());
-            return currentBomb;
-         }
-        return null;
+public Bomb placeBomb() {
+    if (currentBomb == null) {
+        float playerX = position.x;
+        float playerY = position.y;
+        currentBomb = new Bomb(new Texture("Bombs.png"), playerX, playerY);
+        return currentBomb;
     }
-
+    return null;
+}
     @Override
     public void act(float delta) {
         super.act(delta);
 
         stateTime += delta;
 
-      // Handle keyboard input
-    if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-        moveRight();
-        playerAnimation = rightAnimation;
-    } else if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-        moveLeft();
-        playerAnimation = leftAnimation;
-    } else if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
-        moveUp();
-        playerAnimation = upAnimation;
-    } else if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
-        moveDown();
-        playerAnimation = downAnimation;
-    }
-     // Update actor position
-    setPosition(getX() + velocity.x * delta, getY() + velocity.y * delta);
+        if (!isMoving) {
+            // Detectar la primera pulsación de una tecla
+            if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) && canMoveTo(gridX + 1, gridY)) {
+                targetX = position.x + GRID_SIZE;
+                isMoving = true;
+                playerAnimation = rightAnimation;
+            } else if (Gdx.input.isKeyPressed(Input.Keys.LEFT) && canMoveTo(gridX - 1, gridY)) {
+                targetX = position.x - GRID_SIZE;
+                isMoving = true;
+                playerAnimation = leftAnimation;
+            } else if (Gdx.input.isKeyPressed(Input.Keys.UP) && canMoveTo(gridX, gridY + 1)) {
+                targetY = position.y + GRID_SIZE;
+                isMoving = true;
+                playerAnimation = upAnimation;
+            } else if (Gdx.input.isKeyPressed(Input.Keys.DOWN) && canMoveTo(gridX, gridY - 1)) {
+                targetY = position.y - GRID_SIZE;
+                isMoving = true;
+                playerAnimation = downAnimation;
+            }
+        }
 
-    if (currentBomb != null && currentBomb.isExploded) {
-        currentBomb.remove();
-        currentBomb = null;
-    }
-}
-
-    private void moveRight() {
-        if (canMoveRight()) {
-            position.x += velocity.x;
+        if (isMoving) {
+            moveTowardsTarget(delta);
         }
     }
 
-    private void moveLeft() {
-        if (canMoveLeft()) {
-            position.x -= velocity.x;
-        }
-    }
+    private void moveTowardsTarget(float delta) {
+        float distanceX = targetX - position.x;
+        float distanceY = targetY - position.y;
 
-    private void moveUp() {
-        if (canMoveUp()) {
-            position.y += velocity.y;
+        if (Math.abs(distanceX) > speed * delta) {
+            position.x += speed * delta * Math.signum(distanceX);
+        } else {
+            position.x = targetX;
         }
-    }
 
-    private void moveDown() {
-        if (canMoveDown()) {
-            position.y -= velocity.y;
+        if (Math.abs(distanceY) > speed * delta) {
+            position.y += speed * delta * Math.signum(distanceY);
+        } else {
+            position.y = targetY;
         }
+
+        if (position.x == targetX && position.y == targetY) {
+            isMoving = false;
+            gridX = (int) (position.x / GRID_SIZE);
+            gridY = (int) (position.y / GRID_SIZE);
+        }
+
+        // Actualiza la posición del rectángulo de colisión
+        playerBounds.setPosition(position.x, position.y);
     }
+    
+    private boolean canMoveTo(int newGridX, int newGridY) {
+        // Calcula las coordenadas del rectángulo en la nueva posición
+        float newX = newGridX * GRID_SIZE;
+        float newY = newGridY * GRID_SIZE;
+
+        // Actualiza temporalmente el rectángulo de colisión a la nueva posición
+        playerBounds.setPosition(newX, newY);
+
+        // Verifica si el rectángulo del jugador colisiona con algún tile del TileMap
+        return !tileMap.checkCollision(playerBounds);
+    }
+    
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
@@ -168,38 +206,12 @@ public class Player extends Actor implements Disposable{
         batch.draw(frame, position.x, position.y, width, height);
     }
 
-    private boolean canMoveRight() {
-        int newX = (int) (position.x + velocity.x);
-        int newY = (int) position.y;
-        return !tileMap.isCollidable(newX, newY);
-    }
-    
-    private boolean canMoveLeft() {
-        int newX = (int) (position.x - velocity.x);
-        int newY = (int) position.y;
-        return !tileMap.isCollidable(newX, newY);
-    }
-    
-    private boolean canMoveUp() {
-        int newX = (int) position.x;
-        int newY = (int) (position.y + velocity.y);
-        return !tileMap.isCollidable(newX, newY);
-    }
-    
-    private boolean canMoveDown() {
-        int newX = (int) position.x;
-        int newY = (int) (position.y - velocity.y);
-        return !tileMap.isCollidable(newX, newY);
-    }
-
     @Override
     public void dispose() {
-
         player.dispose();
         rightTexture.dispose();
         leftTexture.dispose();
         upTexture.dispose();
         downTexture.dispose();
-    
     }
 }

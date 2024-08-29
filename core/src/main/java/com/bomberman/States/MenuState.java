@@ -30,7 +30,7 @@ public class MenuState implements statesInterface {
         camera = new OrthographicCamera();
         camera.position.set(ConstantValues.WINDOW_WIDTH / 2, ConstantValues.WINDOW_HEIGHT / 2, 0);
         camera.zoom = 1;
-        viewport = new FitViewport(ConstantValues.WINDOW_WIDTH, ConstantValues.WINDOW_HEIGHT, camera);
+        viewport = new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), camera);
         viewport.apply();
         background = new Texture("background.jpeg");
         Title = new Texture("BombermanTitle.png");
@@ -68,11 +68,11 @@ public class MenuState implements statesInterface {
 
     @Override
     public void render() {
-        Gdx.gl.glClearColor(1f, 1f, 1f, 1f);
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
-        batch.draw(background, 0, 0, ConstantValues.WINDOW_WIDTH, ConstantValues.WINDOW_HEIGHT);
+        batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batch.draw(Title, 30, 370, 300, 300);
         batch.end();
         stage.draw();

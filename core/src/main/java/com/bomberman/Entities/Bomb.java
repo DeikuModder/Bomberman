@@ -9,14 +9,14 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 // Clase Bomba
 public class Bomb extends Actor {
     private Texture bombTexture;
-    private float explosionTime = 3f; // Tiempo de explosión en segundos
+    private float explosionTime = 0f; // Tiempo de explosión en segundos
     boolean isExploded = false;
     private Animation<TextureRegion> explosionAnimation;
     private float stateTime;
     
-    public Bomb(Texture bombTexture) {
+    public Bomb(Texture bombTexture, float x, float y) {
         this.bombTexture = bombTexture;
-        TextureRegion[][] temp = new TextureRegion(bombTexture).split(bombTexture.getWidth() / 5, bombTexture.getHeight());
+        TextureRegion[][] temp = new TextureRegion(bombTexture).split(bombTexture.getWidth() / 3, bombTexture.getHeight());
         TextureRegion[] frames = new TextureRegion[temp.length * temp[0].length];
         int index = 0;
         for (int i = 0; i < temp.length; i++) {
@@ -25,6 +25,8 @@ public class Bomb extends Actor {
             }
         }
         explosionAnimation = new Animation<>(0.1f, frames);
+        setPosition(x, y); // Set the position of the bomb
+        stateTime = 0; // Reset the state time
     }
 
     @Override
@@ -47,14 +49,13 @@ public class Bomb extends Actor {
         // Animación de explosión aquí
         // ...
     }
-
     @Override
     public void draw(Batch batch, float parentAlpha) {
         if (isExploded) {
             TextureRegion frame = explosionAnimation.getKeyFrame(stateTime, true);
-            batch.draw(frame, getX(), getY(), 32, 32);
+            batch.draw(frame, getX() - frame.getRegionWidth() / 2, getY() - frame.getRegionHeight() / 2, 32, 32);
         } else {
-            batch.draw(bombTexture, getX(), getY(), 32 , 32);
+            batch.draw(bombTexture, getX() - bombTexture.getWidth() / 2, getY() - bombTexture.getHeight() / 2, bombTexture.getWidth(), bombTexture.getHeight());
         }
     }
 
