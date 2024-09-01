@@ -4,19 +4,32 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.utils.Array;
 
-// Clase Bomba
 public class Bomb extends Actor {
-    private Texture bombTexture;
-    private float explosionTime = 0f; // Tiempo de explosión en segundos
-    boolean isExploded = false;
-    private Animation<TextureRegion> explosionAnimation;
+    private Animation<TextureRegion> bombAnimation;
     private float stateTime;
-    
-    public Bomb(Texture bombTexture, float x, float y) {
-        this.bombTexture = bombTexture;
-        TextureRegion[][] temp = new TextureRegion(bombTexture).split(bombTexture.getWidth() / 3, bombTexture.getHeight());
+    private boolean isExploded;
+    private float explosionDelay;  // Tiempo antes de explotar
+    private int explosionRadius;   // Radio de la explosión en número de tiles
+    private Array<Explosion> explosions;
+    private float width;
+    private float height;
+    private float x;
+    private float y;
+
+    public Bomb(Texture bombTexture, float x, float y, float explosionDelay, int explosionRadius) {
+        this.explosionDelay = explosionDelay;
+        this.explosionRadius = explosionRadius;
+        this.isExploded = false;
+        this.x = x;
+        this.y = y;
+        this.width = 32; // Establece el ancho de la textura
+        this.height = 32; // Establece el alto de la textura
+        // Configurar animación de la bomba
+        TextureRegion[][] temp = TextureRegion.split(bombTexture, bombTexture.getWidth() / 3, bombTexture.getHeight());
         TextureRegion[] frames = new TextureRegion[temp.length * temp[0].length];
         int index = 0;
         for (int i = 0; i < temp.length; i++) {
@@ -24,44 +37,62 @@ public class Bomb extends Actor {
                 frames[index++] = temp[i][j];
             }
         }
-        explosionAnimation = new Animation<>(0.1f, frames);
-        setPosition(x, y); // Set the position of the bomb
-        stateTime = 0; // Reset the state time
+        bombAnimation = new Animation<>(0.2f, frames);
+
+        setPosition(x, y);
+        stateTime = 0;
+        explosions = new Array<>();
     }
 
     @Override
     public void act(float delta) {
         super.act(delta);
-
+        stateTime += delta;
         if (!isExploded) {
-            explosionTime -= delta;
-            if (explosionTime <= 0) {
+            explosionDelay -= delta;
+            if (explosionDelay <= 0) {
                 explode();
             }
-        }
-        else {
-            stateTime += delta; // Actualiza stateTime cuando isExploded es true
-        }
+        } 
     }
 
     private void explode() {
         isExploded = true;
-        // Animación de explosión aquí
-        // ...
+        generateExplosions();
     }
-    @Override
-    public void draw(Batch batch, float parentAlpha) {
-        if (isExploded) {
-            TextureRegion frame = explosionAnimation.getKeyFrame(stateTime, true);
-            batch.draw(frame, getX() - frame.getRegionWidth() / 2, getY() - frame.getRegionHeight() / 2, 32, 32);
-        } else {
-            batch.draw(bombTexture, getX() - bombTexture.getWidth() / 2, getY() - bombTexture.getHeight() / 2, bombTexture.getWidth(), bombTexture.getHeight());
+
+    private void generateExplosions() {
+        // Generar la explosión principal y en las direcciones cardinales
+        explosions.add(new Explosion(getX(), getY())); // Explosión en la posición de la bomba
+
+        for (int i = 1; i <= explosionRadius; i++) {
+            explosions.add(new Explosion(getX() + i * 32, getY())); // Derecha
+            explosions.add(new Explosion(getX() - i * 32, getY())); // Izquierda
+            explosions.add(new Explosion(getX(), getY() + i * 32)); // Arriba
+            explosions.add(new Explosion(getX(), getY() - i * 32)); // Abajo
         }
     }
 
-
-    public void update(float dt) {
-        act(dt);
+    @Override
+    public void draw(Batch batch, float parentAlpha) {
+        if (isExploded) {
+            for (Explosion explosion : explosions) {
+                explosion.draw(batch, parentAlpha);
+            }
+        } else {
+            TextureRegion frame = bombAnimation.getKeyFrame(stateTime, true);
+            batch.draw(frame, x, y, width, height);
+        }
     }
-    
+
+    public boolean isExploded() {
+        return isExploded;
+    }
+
+    public Array<Explosion> getExplosions() {
+        return explosions;
+    }
+    public Rectangle getBounds() {
+    return new Rectangle(x, y, width, height);
+}
 }

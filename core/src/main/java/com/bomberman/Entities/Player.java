@@ -14,7 +14,10 @@ import com.bomberman.Scenario.TileMap;
 
 
 public class Player extends Actor implements Disposable {
-    private Bomb currentBomb;
+    private int maxBombs = 1;  // Cantidad máxima de bombas
+    private int currentBombs = 0;  // Bombas colocadas actualmente
+    private int bombSize = 32;  // Tamaño de las explosiones (esto puede cambiar con power-ups)
+    private float bombTimer = 5f;  // Tiempo hasta que la bomba explota (en segundos)
     private Texture player;
     private Animation<TextureRegion> playerAnimation;
     private Animation<TextureRegion> rightAnimation;
@@ -26,8 +29,7 @@ public class Player extends Actor implements Disposable {
     private Texture upTexture;
     private Texture downTexture;
     private float stateTime;
-    private Vector2 position;
-    
+    private Vector2 position;  
     private TileMap tileMap;
     private float speed = 300f; // velocidad del personaje (píxeles por segundo)
     private float targetX, targetY; // posición objetivo del personaje
@@ -37,8 +39,6 @@ public class Player extends Actor implements Disposable {
     private int gridY;
     private final float GRID_SIZE = 32;
     private boolean isMoving = false;
-    
-    
     private Rectangle playerBounds; // Rectángulo del jugador para colisiones
 
     public Player(Texture texture, TileMap tileMap, float x, float y) {
@@ -120,14 +120,20 @@ public class Player extends Actor implements Disposable {
     }
     downAnimation = new Animation<>(0.3f, frames);
 }
-public Bomb placeBomb() {
-    if (currentBomb == null) {
-        float playerX = position.x;
-        float playerY = position.y;
-        currentBomb = new Bomb(new Texture("Bombs.png"), playerX, playerY);
-        return currentBomb;
+public Bomb placeBomb(Texture bombTexture) {
+    if (currentBombs < maxBombs) {
+        // Alinear la posición del jugador a la cuadrícula
+        float bombX = Math.round(position.x / bombSize) * bombSize;
+        float bombY = Math.round(position.y / bombSize) * bombSize;
+
+        currentBombs++;
+        return new Bomb(bombTexture, bombX, bombY, bombTimer, bombSize);
     }
     return null;
+}
+
+public void bombExploded() {
+    currentBombs--;
 }
     @Override
     public void act(float delta) {

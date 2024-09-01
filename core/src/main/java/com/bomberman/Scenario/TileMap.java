@@ -7,6 +7,7 @@ package com.bomberman.Scenario;
 import com.bomberman.ConstantValues;
 import com.bomberman.Entities.Block;
 import com.bomberman.Entities.Bomb;
+import com.bomberman.Entities.Explosion;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTile;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
@@ -24,6 +25,7 @@ public class TileMap {
     private OrthogonalTiledMapRenderer mapRenderer;
     private Array<Rectangle> collisionRectangles;
     private ShapeRenderer shapeRenderer; // Para depuración visual
+    private Array<Bomb> bombs = new Array<>();
 
     public TileMap(String mapPath) {
         map = new TmxMapLoader().load(mapPath);
@@ -70,6 +72,10 @@ public class TileMap {
     // Renderiza el mapa
     batch.begin();
     mapRenderer.render();
+    for (Bomb bomb : bombs) {
+        bomb.draw(batch, 1);
+    }
+
     batch.end();
 
     // Dibujar los rectángulos de colisión
@@ -85,6 +91,13 @@ public class TileMap {
 public boolean checkCollision(Rectangle objectBounds) {
     for (Rectangle rect : collisionRectangles) {
         if (objectBounds.overlaps(rect)) {
+            return true;
+        }
+    }
+     // Verificar colisiones con bombas
+     for (Bomb bomb : bombs) {
+        Rectangle bombBounds = bomb.getBounds();
+        if (objectBounds.overlaps(bombBounds)) {
             return true;
         }
     }
@@ -107,4 +120,31 @@ public boolean checkCollision(Rectangle objectBounds) {
         int mapHeightInTiles = (int) map.getProperties().get("height");
         return mapHeightInTiles * tileSize;
     }
+
+      // Método para agregar bombas
+      public void addBomb(Bomb bomb) {
+        bombs.add(bomb);
+    }
+
+   public void update(float dt) {
+        // Actualizar bombas
+        for (int i = bombs.size - 1; i >= 0; i--) {
+            Bomb bomb = bombs.get(i);
+            bomb.act(dt);  // Actualiza la bomba
+
+            // Verifica si la bomba ha explotado y maneja las explosiones
+            if (bomb.isExploded()) {
+                handleExplosions(bomb.getExplosions());
+                bombs.removeIndex(i);  // Eliminar la bomba después de que explota
+            }
+        }
+    }
+
+     private void handleExplosions(Array<Explosion> explosions) {
+        for (Explosion explosion : explosions) {
+            // Verifica colisiones y otros efectos de las explosiones aquí
+            // Por ejemplo, destruir bloques, eliminar enemigos, etc.
+        }
+    }
+
 }

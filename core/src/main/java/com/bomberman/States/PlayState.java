@@ -10,9 +10,6 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.maps.tiled.TiledMap;
-import com.badlogic.gdx.maps.tiled.TmxMapLoader;
-import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.bomberman.Entities.Bomb;
 import com.bomberman.Entities.Player;
 import com.bomberman.Scenario.TileMap;
@@ -26,6 +23,7 @@ public class PlayState implements statesInterface {
     private Player player;
     private SpriteBatch batch;
     private OrthographicCamera camera;
+    private Texture bombTexture;
     
 
     public PlayState() {
@@ -34,13 +32,13 @@ public class PlayState implements statesInterface {
         batch = new SpriteBatch();
         camera = new OrthographicCamera();
         player = new Player(texture, tileMap, 100, 100); // Inicializa el jugador con la textura y posición específica
-       
+        bombTexture = new Texture("Bombs.png");
     }
     
 
     public void update(float deltaTime) {
         player.act(deltaTime);
-      //  tileMap.update(deltaTime);
+        tileMap.update(deltaTime);
         handleInput(deltaTime);
     }
 
@@ -59,12 +57,11 @@ public class PlayState implements statesInterface {
         tileMap.dispose();
         player.dispose();
     }
-
     public void handleInput(float dt) {
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-            Bomb bomb = player.placeBomb();
+            Bomb bomb = player.placeBomb(bombTexture);  
             if (bomb != null) {
-               // tileMap.addBomb(bomb);
+                tileMap.addBomb(bomb);
                 System.out.println("Bomb placed at " + bomb.getX() + ", " + bomb.getY());
             } else {
                 System.out.println("Failed to place bomb");
