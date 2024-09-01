@@ -64,20 +64,16 @@ public class Bomb extends Actor {
     private void generateExplosions() {
         // Generar la explosión principal y en las direcciones cardinales
         explosions.add(new Explosion(getX(), getY())); // Explosión en la posición de la bomba
-
-        for (int i = 1; i <= explosionRadius; i++) {
-            explosions.add(new Explosion(getX() + i * 32, getY())); // Derecha
-            explosions.add(new Explosion(getX() - i * 32, getY())); // Izquierda
-            explosions.add(new Explosion(getX(), getY() + i * 32)); // Arriba
-            explosions.add(new Explosion(getX(), getY() - i * 32)); // Abajo
-        }
+        System.out.println("se ha generado una explosion");
     }
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
         if (isExploded) {
+            System.out.println("se ha detectado que exploto");
             for (Explosion explosion : explosions) {
                 explosion.draw(batch, parentAlpha);
+                System.out.println("se ha dibujado la explosion");
             }
         } else {
             TextureRegion frame = bombAnimation.getKeyFrame(stateTime, true);

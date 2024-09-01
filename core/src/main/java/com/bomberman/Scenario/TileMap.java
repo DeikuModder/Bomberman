@@ -72,9 +72,17 @@ public class TileMap {
     // Renderiza el mapa
     batch.begin();
     mapRenderer.render();
-    for (Bomb bomb : bombs) {
+   // Dibujar bombas y sus explosiones
+   for (Bomb bomb : bombs) {
+    if (bomb.isExploded()) {
+        for (Explosion explosion : bomb.getExplosions()) {
+            explosion.draw(batch, 1);
+            System.out.println("se ha dibujado la explosion");
+        }
+    } else {
         bomb.draw(batch, 1);
     }
+}
 
     batch.end();
 
@@ -126,16 +134,34 @@ public boolean checkCollision(Rectangle objectBounds) {
         bombs.add(bomb);
     }
 
-   public void update(float dt) {
+    public void update(float dt) {
         // Actualizar bombas
         for (int i = bombs.size - 1; i >= 0; i--) {
             Bomb bomb = bombs.get(i);
             bomb.act(dt);  // Actualiza la bomba
-
-            // Verifica si la bomba ha explotado y maneja las explosiones
+    
+            // Verifica si la bomba ha explotado
             if (bomb.isExploded()) {
-                handleExplosions(bomb.getExplosions());
-                bombs.removeIndex(i);  // Eliminar la bomba después de que explota
+                // Maneja las explosiones de esta bomba
+                Array<Explosion> explosions = bomb.getExplosions();
+    
+                // Actualiza las explosiones
+                for (Explosion explosion : explosions) {
+                    explosion.act(dt); // Actualizar la animación de la explosión
+                }
+    
+                // Si todas las explosiones han terminado, elimina la bomba
+                boolean allExplosionsFinished = true;
+                for (Explosion explosion : explosions) {
+                    if (!explosion.isFinished()) {
+                        allExplosionsFinished = false;
+                        break;
+                    }
+                }
+    
+                if (allExplosionsFinished) {
+                    bombs.removeIndex(i);  // Eliminar la bomba después de que todas sus explosiones han terminado
+                }
             }
         }
     }
