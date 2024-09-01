@@ -4,47 +4,37 @@
  */
 package com.bomberman.Entities;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Rectangle;
-import com.bomberman.ConstantValues;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 
-/**
- *
- * @author gabri
- */
-public class Block {
-    private final Texture blockSprite;
-    private final SpriteBatch batch;
-    private final Rectangle block;
-    private final ConstantValues constValues = new ConstantValues();
-    public boolean isCollidable;
-    public int x;
-    public int y;
-    
-    public Block(String spritePath, int x, int y, boolean isCollidable) {
-        this.batch = new SpriteBatch();
-        this.blockSprite = new Texture(spritePath);
-        this.block = new Rectangle();
-        this.isCollidable = isCollidable;
-        this.x = x;
-        this.y = y;
-        
-        block.x = x;
-        block.y = y;
-        block.height = constValues.BLOCK_SIZE;
-        block.width = constValues.BLOCK_SIZE;
+public class Block extends Actor {
+    private Texture texture;
+    private Rectangle bounds;
+
+    public Block(float x, float y) {
+        this.texture = new Texture("block.png"); 
+        this.bounds = new Rectangle(x, y, 32, 32); 
+        setPosition(x, y);
+        setSize(32, 32);
     }
-    
-    public void render() {
-        this.batch.begin();
-        this.batch.draw(this.blockSprite, this.block.x, this.block.y);
-        this.batch.end();
+
+    @Override
+    public void draw(Batch batch, float parentAlpha) {
+        batch.draw(texture, getX(), getY(), getWidth(), getHeight());
     }
-    
+
+    public Rectangle getBounds() {
+        return bounds;
+    }
+
+    @Override
+    public void act(float delta) {
+        // Aquí puedes manejar la lógica de los bloques, como ser destruidos por explosiones
+    }
+
     public void dispose() {
-        this.batch.dispose();
-        this.blockSprite.dispose();
+        texture.dispose();
     }
 }

@@ -4,7 +4,6 @@
  */
 package com.bomberman.Scenario;
 
-import com.bomberman.ConstantValues;
 import com.bomberman.Entities.Block;
 import com.bomberman.Entities.Bomb;
 import com.bomberman.Entities.Explosion;
@@ -13,10 +12,14 @@ import com.badlogic.gdx.maps.tiled.TiledMapTile;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
+
+import java.util.Random;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 
@@ -26,6 +29,8 @@ public class TileMap {
     private Array<Rectangle> collisionRectangles;
     private ShapeRenderer shapeRenderer; // Para depuración visual
     private Array<Bomb> bombs = new Array<>();
+    private Array<Block> blocks = new Array<>();
+    private int totalblocks = 20;
 
     public TileMap(String mapPath) {
         map = new TmxMapLoader().load(mapPath);
@@ -33,6 +38,7 @@ public class TileMap {
         collisionRectangles = new Array<>();
         shapeRenderer = new ShapeRenderer(); // Inicializar el ShapeRenderer para depuración
         loadCollisions();
+        generateRandomBlocks(totalblocks);
     }
     private void loadCollisions() {
         // Obtén la capa de bloques con colisiones
@@ -65,6 +71,29 @@ public class TileMap {
         }
     }
 
+    public void generateRandomBlocks(int blockCount) {
+        TiledMapTileLayer groundLayer = (TiledMapTileLayer) map.getLayers().get("Capa de patrones 1");
+        TiledMapTileLayer blockLayer = (TiledMapTileLayer) map.getLayers().get("blocks");
+    
+        int mapWidth = groundLayer.getWidth();
+        int mapHeight = groundLayer.getHeight();
+    
+        for (int i = 0; i < blockCount; i++) {
+            int x, y;
+    
+            // Encontrar una posición aleatoria que no esté ocupada por un bloque en la capa "blocks"
+            do {
+                x = MathUtils.random(mapWidth - 1);
+                y = MathUtils.random(mapHeight - 1);
+            } while (blockLayer.getCell(x, y) != null);
+    
+            // Crear y agregar el bloque
+            Block block = new Block(x * groundLayer.getTileWidth(), y * groundLayer.getTileHeight());
+            blocks.add(block);
+            System.out.println("Block added at: (" + x + ", " + y + ")");
+        }
+    }
+
    public void render(SpriteBatch batch, OrthographicCamera camera) {
     batch.setProjectionMatrix(camera.combined);
     mapRenderer.setView(camera);
@@ -81,8 +110,11 @@ public class TileMap {
         }
     } else {
         bomb.draw(batch, 1);
+        }
     }
-}
+    for (Block block : blocks) {
+        block.draw(batch, 1);
+    }
 
     batch.end();
 
@@ -94,7 +126,7 @@ public class TileMap {
         shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height);
     }
     shapeRenderer.end();
-}
+    }
 
 public boolean checkCollision(Rectangle objectBounds) {
     for (Rectangle rect : collisionRectangles) {
@@ -106,6 +138,12 @@ public boolean checkCollision(Rectangle objectBounds) {
      for (Bomb bomb : bombs) {
         Rectangle bombBounds = bomb.getBounds();
         if (objectBounds.overlaps(bombBounds)) {
+            return true;
+        }
+    }
+    // Verificar colisiones con bloques
+    for (Block block : blocks) {
+        if (objectBounds.overlaps(block.getBounds())) {
             return true;
         }
     }
