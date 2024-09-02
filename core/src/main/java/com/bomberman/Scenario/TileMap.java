@@ -36,7 +36,7 @@ public class TileMap {
         map = new TmxMapLoader().load(mapPath);
         mapRenderer = new OrthogonalTiledMapRenderer(map);
         collisionRectangles = new Array<>();
-        shapeRenderer = new ShapeRenderer(); // Inicializar el ShapeRenderer para depuración
+       // shapeRenderer = new ShapeRenderer(); // Inicializar el ShapeRenderer para depuración
         loadCollisions();
         generateRandomBlocks(totalblocks);
     }
@@ -119,13 +119,13 @@ public class TileMap {
     batch.end();
 
     // Dibujar los rectángulos de colisión
-    shapeRenderer.setProjectionMatrix(camera.combined);
-    shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-    shapeRenderer.setColor(Color.RED); // Rojo para colisiones
-    for (Rectangle rect : collisionRectangles) {
-        shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height);
-    }
-    shapeRenderer.end();
+   // shapeRenderer.setProjectionMatrix(camera.combined);
+    //shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+    //shapeRenderer.setColor(Color.RED); // Rojo para colisiones
+    //for (Rectangle rect : collisionRectangles) {
+     //   shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height);
+    //}
+    //shapeRenderer.end();
     }
 
 public boolean checkCollision(Rectangle objectBounds) {
