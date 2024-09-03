@@ -14,7 +14,7 @@ public class Bomb extends Actor {
     private boolean isExploded;
     private float explosionDelay;  // Tiempo antes de explotar
     private int explosionRadius;   // Radio de la explosión en número de tiles
-    private Array<Explosion> explosions;
+    private Array<ExplosionPart> explosions;
     private float width;
     private float height;
     private float x;
@@ -62,16 +62,54 @@ public class Bomb extends Actor {
     }
 
     private void generateExplosions() {
-        // Generar la explosión principal y en las direcciones cardinales
-        explosions.add(new Explosion(getX(), getY())); // Explosión en la posición de la bomba
-        System.out.println("se ha generado una explosion");
+        // Texturas para cada parte de la explosión
+        Texture centerTexture = new Texture("center.png");
+        Texture sideTexture = new Texture("side2.png");
+        Texture cornerTexture = new Texture("corner2.png");
+        Texture sidedownTexture = new Texture("sidedown.png");
+        Texture sideupTexture = new Texture("sideup.png");
+        Texture cornerupTexture = new Texture("cornerup.png");
+        Texture cornerdownTexture = new Texture ("cornerdown.png");
+        // Añadir el centro de la explosión
+        explosions.add(new ExplosionPart(getX(), getY(), "center", centerTexture));
+    
+        // Generar las explosiones en cada dirección
+        for (int i = 1; i <= explosionRadius; i++) {
+            // Arriba
+            if (i == explosionRadius) {
+                explosions.add(new ExplosionPart(getX(), getY() + i * 32, "corner_up", cornerupTexture));
+            } else {
+                explosions.add(new ExplosionPart(getX(), getY() + i * 32, "side_up", sideupTexture));
+            }
+    
+            // Abajo
+            if (i == explosionRadius) {
+                explosions.add(new ExplosionPart(getX(), getY() - i * 32, "corner_down", cornerdownTexture));
+            } else {
+                explosions.add(new ExplosionPart(getX(), getY() - i * 32, "side_down", sidedownTexture));
+            }
+    
+            // Derecha
+            if (i == explosionRadius) {
+                explosions.add(new ExplosionPart(getX() + i * 32, getY(), "corner_right", cornerTexture));
+            } else {
+                explosions.add(new ExplosionPart(getX() + i * 32, getY(), "side_right", sideTexture));
+            }
+    
+            // Izquierda
+            if (i == explosionRadius) {
+                explosions.add(new ExplosionPart(getX() - i * 32, getY(), "corner_left", cornerTexture));
+            } else {
+                explosions.add(new ExplosionPart(getX() - i * 32, getY(), "side_left", sideTexture));
+            }
+        }
     }
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
         if (isExploded) {
             System.out.println("se ha detectado que exploto");
-            for (Explosion explosion : explosions) {
+            for (ExplosionPart explosion : explosions) {
                 explosion.draw(batch, parentAlpha);
                 System.out.println("se ha dibujado la explosion");
             }
@@ -85,7 +123,7 @@ public class Bomb extends Actor {
         return isExploded;
     }
 
-    public Array<Explosion> getExplosions() {
+    public Array<ExplosionPart> getExplosions() {
         return explosions;
     }
     public Rectangle getBounds() {

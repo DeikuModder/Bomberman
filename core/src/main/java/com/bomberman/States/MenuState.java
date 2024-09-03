@@ -16,6 +16,7 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.bomberman.Bomberman;
 import com.bomberman.ConstantValues;
+import com.badlogic.gdx.audio.Music;
 
 public class MenuState implements statesInterface {
     private OrthographicCamera camera;
@@ -25,6 +26,7 @@ public class MenuState implements statesInterface {
     private Texture Title;
     private Button playButton;
     private Stage stage;
+    private Music music;
 
     public MenuState() {
         camera = new OrthographicCamera();
@@ -36,6 +38,9 @@ public class MenuState implements statesInterface {
         Title = new Texture("BombermanTitle.png");
         batch = new SpriteBatch();
         stage = new Stage(viewport, batch);
+      //  Music music = Gdx.audio.newMusic(Gdx.files.internal("your_music_file.mp3"));
+      //  music.setLooping(true);
+    //    music.play();
         Gdx.input.setInputProcessor(stage);
 
      // Crear el botón
@@ -83,5 +88,7 @@ public class MenuState implements statesInterface {
         background.dispose();
         stage.dispose();
         batch.dispose();
+      //  music.stop();
+       // music.dispose();
     }
 }

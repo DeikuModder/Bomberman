@@ -14,9 +14,9 @@ import com.bomberman.Scenario.TileMap;
 
 
 public class Player extends Actor implements Disposable {
-    private int maxBombs = 4;  // Cantidad máxima de bombas
+    private int maxBombs = 10;  // Cantidad máxima de bombas
     private int currentBombs = 0;  // Bombas colocadas actualmente
-    private int bombSize = 32;  // Tamaño de las explosiones (esto puede cambiar con power-ups)
+    private int bombSize = 1;  // Tamaño de las explosiones (esto puede cambiar con power-ups)
     private float bombTimer = 5f;  // Tiempo hasta que la bomba explota (en segundos)
     private Texture player;
     private Animation<TextureRegion> playerAnimation;

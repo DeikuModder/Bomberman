@@ -6,15 +6,13 @@ package com.bomberman.Scenario;
 
 import com.bomberman.Entities.Block;
 import com.bomberman.Entities.Bomb;
-import com.bomberman.Entities.Explosion;
+import com.bomberman.Entities.ExplosionPart;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTile;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
-
 import java.util.Random;
-
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -30,7 +28,7 @@ public class TileMap {
     private ShapeRenderer shapeRenderer; // Para depuración visual
     private Array<Bomb> bombs = new Array<>();
     private Array<Block> blocks = new Array<>();
-    private int totalblocks = 20;
+    private int totalblocks = 35;
 
     public TileMap(String mapPath) {
         map = new TmxMapLoader().load(mapPath);
@@ -104,7 +102,7 @@ public class TileMap {
    // Dibujar bombas y sus explosiones
    for (Bomb bomb : bombs) {
     if (bomb.isExploded()) {
-        for (Explosion explosion : bomb.getExplosions()) {
+        for (ExplosionPart explosion : bomb.getExplosions()) {
             explosion.draw(batch, 1);
             System.out.println("se ha dibujado la explosion");
         }
@@ -181,16 +179,16 @@ public boolean checkCollision(Rectangle objectBounds) {
             // Verifica si la bomba ha explotado
             if (bomb.isExploded()) {
                 // Maneja las explosiones de esta bomba
-                Array<Explosion> explosions = bomb.getExplosions();
+                Array<ExplosionPart> explosions = bomb.getExplosions();
     
                 // Actualiza las explosiones
-                for (Explosion explosion : explosions) {
+                for (ExplosionPart explosion : explosions) {
                     explosion.act(dt); // Actualizar la animación de la explosión
                 }
     
                 // Si todas las explosiones han terminado, elimina la bomba
                 boolean allExplosionsFinished = true;
-                for (Explosion explosion : explosions) {
+                for (ExplosionPart explosion : explosions) {
                     if (!explosion.isFinished()) {
                         allExplosionsFinished = false;
                         break;
@@ -204,8 +202,8 @@ public boolean checkCollision(Rectangle objectBounds) {
         }
     }
 
-     private void handleExplosions(Array<Explosion> explosions) {
-        for (Explosion explosion : explosions) {
+     private void handleExplosions(Array<ExplosionPart> explosions) {
+        for (ExplosionPart explosion : explosions) {
             // Verifica colisiones y otros efectos de las explosiones aquí
             // Por ejemplo, destruir bloques, eliminar enemigos, etc.
         }

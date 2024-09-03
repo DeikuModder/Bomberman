@@ -14,7 +14,7 @@ public class Block extends Actor {
     private Rectangle bounds;
 
     public Block(float x, float y) {
-        this.texture = new Texture("block.png"); 
+        this.texture = new Texture("block2.png"); 
         this.bounds = new Rectangle(x, y, 32, 32); 
         setPosition(x, y);
         setSize(32, 32);
