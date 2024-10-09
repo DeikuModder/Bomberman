@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 
 public class ExplosionPart extends Actor {
@@ -49,7 +50,7 @@ public class ExplosionPart extends Actor {
     }
 
     // Crear la animación
-    explosionAnimation = new Animation<>(0.5f, frames);
+    explosionAnimation = new Animation<>(0.1f, frames);
     setPosition(x, y);
     stateTime = 0;
     isFinished = false;
@@ -75,5 +76,9 @@ public class ExplosionPart extends Actor {
 
     public boolean isFinished() {
         return isFinished;
+    }
+    
+     public Rectangle getBounds() {
+        return new Rectangle(getX(), getY(), 32, 32);
     }
 }

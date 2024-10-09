@@ -12,8 +12,6 @@ import com.badlogic.gdx.maps.tiled.TiledMapTile;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
-import java.util.Random;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -184,6 +182,14 @@ public boolean checkCollision(Rectangle objectBounds) {
                 // Actualiza las explosiones
                 for (ExplosionPart explosion : explosions) {
                     explosion.act(dt); // Actualizar la animación de la explosión
+                     // Verifica colisiones con bloques normales
+                    for (Block block : blocks) {
+                        if (explosion.getBounds().overlaps(block.getBounds())) {
+                        // Destruir el bloque normal
+                        blocks.removeValue(block, true);
+                        break;
+                        }
+                    }
                 }
     
                 // Si todas las explosiones han terminado, elimina la bomba
@@ -199,13 +205,6 @@ public boolean checkCollision(Rectangle objectBounds) {
                     bombs.removeIndex(i);  // Eliminar la bomba después de que todas sus explosiones han terminado
                 }
             }
-        }
-    }
-
-     private void handleExplosions(Array<ExplosionPart> explosions) {
-        for (ExplosionPart explosion : explosions) {
-            // Verifica colisiones y otros efectos de las explosiones aquí
-            // Por ejemplo, destruir bloques, eliminar enemigos, etc.
         }
     }
 
