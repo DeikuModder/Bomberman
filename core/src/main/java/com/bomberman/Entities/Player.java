@@ -11,9 +11,11 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Disposable;
 import com.bomberman.Scenario.TileMap;
+import com.bomberman.Scenario.TileMap.CollisionListener;
 
 
-public class Player extends Actor implements Disposable {
+public class Player extends Actor implements Disposable, CollisionListener {
+    private int lifebar = 3;
     private int maxBombs = 10;  // Cantidad máxima de bombas
     private int currentBombs = 0;  // Bombas colocadas actualmente
     private int bombSize = 1;  // Tamaño de las explosiones (esto puede cambiar con power-ups)
@@ -44,6 +46,7 @@ public class Player extends Actor implements Disposable {
     public Player(Texture texture, TileMap tileMap, float x, float y) {
         this.player = texture;
         this.tileMap = tileMap;
+        tileMap.addCollisionListener(this);
         position = new Vector2(x, y);
         rightTexture = new Texture("bomberman-sprite-2.png");
         leftTexture = new Texture("bomberman-sprite-4.png");
@@ -219,5 +222,17 @@ public void bombExploded() {
         leftTexture.dispose();
         upTexture.dispose();
         downTexture.dispose();
+    }
+    @Override 
+    public Rectangle getCollisionBounds() {
+        return new Rectangle(getX(), getY(), width, height);
+    }
+
+    @Override
+    public void onCollision(Rectangle collisionArea) {
+        if (lifebar >1){
+        lifebar--;
+        }
+        else{ }
     }
 }

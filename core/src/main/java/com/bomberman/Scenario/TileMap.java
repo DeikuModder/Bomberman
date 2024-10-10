@@ -12,6 +12,10 @@ import com.badlogic.gdx.maps.tiled.TiledMapTile;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -27,6 +31,7 @@ public class TileMap {
     private Array<Bomb> bombs = new Array<>();
     private Array<Block> blocks = new Array<>();
     private int totalblocks = 35;
+    private List<CollisionListener> collisionListeners = new ArrayList<>();
 
     public TileMap(String mapPath) {
         map = new TmxMapLoader().load(mapPath);
@@ -190,6 +195,12 @@ public boolean checkCollision(Rectangle objectBounds) {
                         break;
                         }
                     }
+                      // Verifica colisiones con el jugador (nuevo código)
+                  for (CollisionListener listener : collisionListeners) {
+                      if (explosion.getBounds().overlaps(listener.getCollisionBounds())) {
+                        listener.onCollision(explosion.getBounds());
+                    }
+                }
                 }
     
                 // Si todas las explosiones han terminado, elimina la bomba
@@ -206,6 +217,15 @@ public boolean checkCollision(Rectangle objectBounds) {
                 }
             }
         }
+    }
+
+    public interface CollisionListener {
+        void onCollision(Rectangle collisionArea);
+        Rectangle getCollisionBounds(); // Agregué este método
+    }
+
+    public void addCollisionListener(CollisionListener listener) {
+        collisionListeners.add(listener);
     }
 
 }
