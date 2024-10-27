@@ -108,10 +108,9 @@ public class Bomb extends Actor {
     @Override
     public void draw(Batch batch, float parentAlpha) {
         if (isExploded) {
-            System.out.println("se ha detectado que exploto");
             for (ExplosionPart explosion : explosions) {
                 explosion.draw(batch, parentAlpha);
-                System.out.println("se ha dibujado la explosion");
+               // System.out.println("se ha dibujado la explosion");
             }
         } else {
             TextureRegion frame = bombAnimation.getKeyFrame(stateTime, true);

@@ -16,6 +16,7 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -37,7 +38,7 @@ public class TileMap {
         map = new TmxMapLoader().load(mapPath);
         mapRenderer = new OrthogonalTiledMapRenderer(map);
         collisionRectangles = new Array<>();
-       // shapeRenderer = new ShapeRenderer(); // Inicializar el ShapeRenderer para depuración
+        shapeRenderer = new ShapeRenderer(); // Inicializar el ShapeRenderer para depuración
         loadCollisions();
         generateRandomBlocks(totalblocks);
     }
@@ -98,7 +99,7 @@ public class TileMap {
    public void render(SpriteBatch batch, OrthographicCamera camera) {
     batch.setProjectionMatrix(camera.combined);
     mapRenderer.setView(camera);
-    
+   
     // Renderiza el mapa
     batch.begin();
     mapRenderer.render();
@@ -107,7 +108,7 @@ public class TileMap {
     if (bomb.isExploded()) {
         for (ExplosionPart explosion : bomb.getExplosions()) {
             explosion.draw(batch, 1);
-            System.out.println("se ha dibujado la explosion");
+         //   System.out.println("se ha dibujado la explosion");
         }
     } else {
         bomb.draw(batch, 1);
@@ -119,15 +120,28 @@ public class TileMap {
 
     batch.end();
 
-    // Dibujar los rectángulos de colisión
-   // shapeRenderer.setProjectionMatrix(camera.combined);
-    //shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-    //shapeRenderer.setColor(Color.RED); // Rojo para colisiones
-    //for (Rectangle rect : collisionRectangles) {
-     //   shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height);
-    //}
-    //shapeRenderer.end();
+    shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+
+    // Dibujar los rectángulos de colisión de las explosiones
+    for (Bomb bomb : bombs) {
+        Array<ExplosionPart> explosions = bomb.getExplosions();
+        for (ExplosionPart explosion : explosions) {
+            Rectangle explosionBounds = explosion.getBounds();
+            shapeRenderer.setColor(Color.RED); // Rectángulos de explosiones en rojo
+            shapeRenderer.rect(explosionBounds.x, explosionBounds.y, explosionBounds.width, explosionBounds.height);
+        }
     }
+
+    // Dibujar los rectángulos de colisión del jugador
+    for (CollisionListener listener : collisionListeners) {
+        Rectangle playerBounds = listener.getCollisionBounds();
+        shapeRenderer.setColor(Color.GREEN); // Rectángulos del jugador en verde
+        shapeRenderer.rect(playerBounds.x, playerBounds.y, playerBounds.width, playerBounds.height);
+    }
+
+    shapeRenderer.end();
+}
+    
 
 public boolean checkCollision(Rectangle objectBounds) {
     for (Rectangle rect : collisionRectangles) {
@@ -195,12 +209,14 @@ public boolean checkCollision(Rectangle objectBounds) {
                         break;
                         }
                     }
-                      // Verifica colisiones con el jugador (nuevo código)
-                  for (CollisionListener listener : collisionListeners) {
-                      if (explosion.getBounds().overlaps(listener.getCollisionBounds())) {
-                        listener.onCollision(explosion.getBounds());
-                    }
-                }
+                     
+                     // Verifica colisiones con el jugador 
+                    for (CollisionListener listener : collisionListeners) {
+                        if (explosion.getBounds().overlaps(listener.getCollisionBounds())) {
+                        System.out.println("Colisión detectada con el jugador");
+                        listener.onCollision();
+                        }
+                     }
                 }
     
                 // Si todas las explosiones han terminado, elimina la bomba
@@ -220,12 +236,35 @@ public boolean checkCollision(Rectangle objectBounds) {
     }
 
     public interface CollisionListener {
-        void onCollision(Rectangle collisionArea);
+        void onCollision();
         Rectangle getCollisionBounds(); // Agregué este método
     }
 
     public void addCollisionListener(CollisionListener listener) {
         collisionListeners.add(listener);
     }
+
+    public void renderCollisionBounds() {
+    shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+
+    // Dibujar los rectángulos de colisión de las explosiones
+    for (Bomb bomb : bombs) {
+        Array<ExplosionPart> explosions = bomb.getExplosions();
+        for (ExplosionPart explosion : explosions) {
+            Rectangle explosionBounds = explosion.getBounds();
+            shapeRenderer.setColor(Color.BLUE); // Rectángulos de explosiones en rojo
+            shapeRenderer.rect(explosionBounds.x, explosionBounds.y, explosionBounds.width, explosionBounds.height);
+        }
+    }
+
+    // Dibujar los rectángulos de colisión del jugador
+    for (CollisionListener listener : collisionListeners) {
+        Rectangle playerBounds = listener.getCollisionBounds();
+        shapeRenderer.setColor(Color.ORANGE); // Rectángulos del jugador en verde
+        shapeRenderer.rect(playerBounds.x, playerBounds.y, playerBounds.width, playerBounds.height);
+    }
+
+    shapeRenderer.end();
+}
 
 }

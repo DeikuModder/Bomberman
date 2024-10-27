@@ -10,12 +10,14 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Disposable;
+import com.bomberman.Bomberman;
 import com.bomberman.Scenario.TileMap;
 import com.bomberman.Scenario.TileMap.CollisionListener;
+import com.bomberman.States.DeathState;
 
 
 public class Player extends Actor implements Disposable, CollisionListener {
-    private int lifebar = 3;
+    private int lifebar = 25;
     private int maxBombs = 10;  // Cantidad máxima de bombas
     private int currentBombs = 0;  // Bombas colocadas actualmente
     private int bombSize = 1;  // Tamaño de las explosiones (esto puede cambiar con power-ups)
@@ -42,6 +44,8 @@ public class Player extends Actor implements Disposable, CollisionListener {
     private final float GRID_SIZE = 32;
     private boolean isMoving = false;
     private Rectangle playerBounds; // Rectángulo del jugador para colisiones
+    private float invulnerabilityTimer = 0;
+    private final float INVULNERABILITY_DURATION = 1.0f;  // 1 segundo de invulnerabilidad
 
     public Player(Texture texture, TileMap tileMap, float x, float y) {
         this.player = texture;
@@ -168,6 +172,10 @@ public void bombExploded() {
         if (isMoving) {
             moveTowardsTarget(delta);
         }
+         // Actualizar el temporizador de invulnerabilidad
+        if (invulnerabilityTimer > 0) {
+             invulnerabilityTimer -= delta;
+        }
     }
 
     private void moveTowardsTarget(float delta) {
@@ -225,14 +233,20 @@ public void bombExploded() {
     }
     @Override 
     public Rectangle getCollisionBounds() {
-        return new Rectangle(getX(), getY(), width, height);
+        return playerBounds;
     }
 
-    @Override
-    public void onCollision(Rectangle collisionArea) {
-        if (lifebar >1){
+  @Override
+  public void onCollision() {
+    if (invulnerabilityTimer <= 0) {
         lifebar--;
+        System.out.println("has recibido daño");
+
+        if (lifebar <= 0){
+            Bomberman.getInstance().setState(new DeathState());
+        } else {
+            invulnerabilityTimer = INVULNERABILITY_DURATION;  // Activar la invulnerabilidad
         }
-        else{ }
     }
+}
 }

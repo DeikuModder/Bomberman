@@ -12,17 +12,28 @@ import com.bomberman.States.statesInterface;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class Bomberman extends ApplicationAdapter {
-    private PlayState playState;
+    private static Bomberman instance;
     private statesInterface currentState;
     private OrthographicCamera camera;
     private Viewport viewport;
     private final ConstantValues constValues = new ConstantValues();
 
+     // Constructor privado
+     private Bomberman() {}
+
+     // Método para obtener la instancia
+     public static Bomberman getInstance() {
+         if (instance == null) {
+             instance = new Bomberman();
+         }
+         return instance;
+     }
+
     @Override
     public void create() {
         camera = new OrthographicCamera();
         viewport = new FitViewport(ConstantValues.WINDOW_WIDTH, ConstantValues.WINDOW_HEIGHT, camera);
-        setState(new MenuState());
+        setState(new MenuState()); 
     }
 
     public void setState(statesInterface state) {
@@ -47,8 +58,10 @@ public class Bomberman extends ApplicationAdapter {
 
 
     @Override
-    public void dispose() {
-        playState.dispose();
+     public void dispose() {
+        if (currentState != null) {
+            currentState.dispose();
+        }
     }
     
     public void startGame() {
