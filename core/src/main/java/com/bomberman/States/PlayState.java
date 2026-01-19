@@ -24,6 +24,7 @@ public class PlayState implements statesInterface {
     private SpriteBatch batch;
     private OrthographicCamera camera;
     private Texture bombTexture;
+    private Texture enemyTexture;
     
 
     public PlayState() {
@@ -33,6 +34,11 @@ public class PlayState implements statesInterface {
         camera = new OrthographicCamera();
         player = new Player(texture, tileMap, 100, 100); // Inicializa el jugador con la textura y posición específica
         bombTexture = new Texture("Bombs.png");
+        
+        // Cargar textura de enemigos y generarlos
+        // Usamos la textura de bomba temporalmente como placeholder para enemigos
+        enemyTexture = new Texture("Bombs.png");  // TODO: Reemplazar con sprite de enemigo real
+        tileMap.generateEnemies(enemyTexture, 5);  // Generar 5 enemigos
     }
     
 
@@ -56,8 +62,11 @@ public class PlayState implements statesInterface {
     public void dispose() {
         tileMap.dispose();
         player.dispose();
+        bombTexture.dispose();
+        enemyTexture.dispose();
     }
     public void handleInput(float dt) {
+        // Colocar bomba con ESPACIO
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             Bomb bomb = player.placeBomb(bombTexture);  
             if (bomb != null) {
@@ -66,6 +75,12 @@ public class PlayState implements statesInterface {
             } else {
                 System.out.println("Failed to place bomb");
             }
+        }
+        
+        // Toggle modo debug con F3
+        if (Gdx.input.isKeyJustPressed(Input.Keys.F3)) {
+            tileMap.toggleDebugMode();
+            System.out.println("Debug mode: " + (tileMap.isDebugMode() ? "ON" : "OFF"));
         }
     }
 }

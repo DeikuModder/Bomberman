@@ -6,6 +6,7 @@ package com.bomberman.Scenario;
 
 import com.bomberman.Entities.Block;
 import com.bomberman.Entities.Bomb;
+import com.bomberman.Entities.Enemy;
 import com.bomberman.Entities.ExplosionPart;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTile;
@@ -31,8 +32,13 @@ public class TileMap {
     private ShapeRenderer shapeRenderer; // Para depuración visual
     private Array<Bomb> bombs = new Array<>();
     private Array<Block> blocks = new Array<>();
+    private Array<Enemy> enemies = new Array<>();
     private int totalblocks = 35;
+    private int totalEnemies = 5;  // Número de enemigos a generar
     private List<CollisionListener> collisionListeners = new ArrayList<>();
+    
+    // Flag para activar/desactivar modo debug (visualización de hitboxes)
+    private boolean debugMode = false;
 
     public TileMap(String mapPath) {
         map = new TmxMapLoader().load(mapPath);
@@ -41,6 +47,86 @@ public class TileMap {
         shapeRenderer = new ShapeRenderer(); // Inicializar el ShapeRenderer para depuración
         loadCollisions();
         generateRandomBlocks(totalblocks);
+        // Los enemigos se generan después de cargar la textura en PlayState
+    }
+    
+    /**
+     * Genera enemigos en posiciones aleatorias válidas del mapa.
+     * 
+     * @param enemyTexture Textura para los enemigos
+     * @param count Número de enemigos a generar
+     */
+    public void generateEnemies(com.badlogic.gdx.graphics.Texture enemyTexture, int count) {
+        TiledMapTileLayer groundLayer = (TiledMapTileLayer) map.getLayers().get("Capa de patrones 1");
+        TiledMapTileLayer blockLayer = (TiledMapTileLayer) map.getLayers().get("blocks");
+        
+        int mapWidth = groundLayer.getWidth();
+        int mapHeight = groundLayer.getHeight();
+        int tileWidth = (int) groundLayer.getTileWidth();
+        int tileHeight = (int) groundLayer.getTileHeight();
+        
+        // Zona segura alrededor del spawn del jugador (esquina inferior izquierda)
+        int safeZoneX = 5;
+        int safeZoneY = 5;
+        
+        for (int i = 0; i < count; i++) {
+            int x, y;
+            int attempts = 0;
+            int maxAttempts = 100;
+            
+            // Encontrar una posición válida
+            do {
+                x = MathUtils.random(safeZoneX, mapWidth - 2);
+                y = MathUtils.random(safeZoneY, mapHeight - 2);
+                attempts++;
+            } while ((blockLayer.getCell(x, y) != null || isBlockAt(x * tileWidth, y * tileHeight)) 
+                     && attempts < maxAttempts);
+            
+            if (attempts < maxAttempts) {
+                // Crear el enemigo con referencia al checker de colisiones
+                Enemy enemy = new Enemy(enemyTexture, x * tileWidth, y * tileHeight, 
+                    bounds -> checkCollisionForEnemy(bounds));
+                enemies.add(enemy);
+                System.out.println("Enemy spawned at: (" + x + ", " + y + ")");
+            }
+        }
+    }
+    
+    /**
+     * Verifica si hay un bloque destructible en la posición dada.
+     */
+    private boolean isBlockAt(float x, float y) {
+        for (Block block : blocks) {
+            if (block.getBounds().contains(x, y)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Versión de checkCollision para enemigos (no colisionan con otros enemigos).
+     */
+    private boolean checkCollisionForEnemy(Rectangle objectBounds) {
+        // Colisión con tiles del mapa
+        for (Rectangle rect : collisionRectangles) {
+            if (objectBounds.overlaps(rect)) {
+                return true;
+            }
+        }
+        // Colisión con bloques destructibles
+        for (Block block : blocks) {
+            if (objectBounds.overlaps(block.getBounds())) {
+                return true;
+            }
+        }
+        // Colisión con bombas
+        for (Bomb bomb : bombs) {
+            if (objectBounds.overlaps(bomb.getBounds())) {
+                return true;
+            }
+        }
+        return false;
     }
     private void loadCollisions() {
         // Obtén la capa de bloques con colisiones
@@ -117,29 +203,46 @@ public class TileMap {
     for (Block block : blocks) {
         block.draw(batch, 1);
     }
+    
+    // Dibujar enemigos
+    for (Enemy enemy : enemies) {
+        enemy.draw(batch, 1);
+    }
 
     batch.end();
 
-    shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+    // Solo dibujar hitboxes si está activo el modo debug
+    if (debugMode) {
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
 
-    // Dibujar los rectángulos de colisión de las explosiones
-    for (Bomb bomb : bombs) {
-        Array<ExplosionPart> explosions = bomb.getExplosions();
-        for (ExplosionPart explosion : explosions) {
-            Rectangle explosionBounds = explosion.getBounds();
-            shapeRenderer.setColor(Color.RED); // Rectángulos de explosiones en rojo
-            shapeRenderer.rect(explosionBounds.x, explosionBounds.y, explosionBounds.width, explosionBounds.height);
+        // Dibujar los rectángulos de colisión de las explosiones
+        for (Bomb bomb : bombs) {
+            Array<ExplosionPart> explosions = bomb.getExplosions();
+            for (ExplosionPart explosion : explosions) {
+                Rectangle explosionBounds = explosion.getBounds();
+                shapeRenderer.setColor(Color.RED); // Rectángulos de explosiones en rojo
+                shapeRenderer.rect(explosionBounds.x, explosionBounds.y, explosionBounds.width, explosionBounds.height);
+            }
         }
-    }
 
-    // Dibujar los rectángulos de colisión del jugador
-    for (CollisionListener listener : collisionListeners) {
-        Rectangle playerBounds = listener.getCollisionBounds();
-        shapeRenderer.setColor(Color.GREEN); // Rectángulos del jugador en verde
-        shapeRenderer.rect(playerBounds.x, playerBounds.y, playerBounds.width, playerBounds.height);
-    }
+        // Dibujar los rectángulos de colisión del jugador
+        for (CollisionListener listener : collisionListeners) {
+            Rectangle playerBounds = listener.getCollisionBounds();
+            shapeRenderer.setColor(Color.GREEN); // Rectángulos del jugador en verde
+            shapeRenderer.rect(playerBounds.x, playerBounds.y, playerBounds.width, playerBounds.height);
+        }
+        
+        // Dibujar los rectángulos de colisión de los enemigos
+        for (Enemy enemy : enemies) {
+            if (enemy.isAlive()) {
+                Rectangle enemyBounds = enemy.getBounds();
+                shapeRenderer.setColor(Color.MAGENTA); // Rectángulos de enemigos en magenta
+                shapeRenderer.rect(enemyBounds.x, enemyBounds.y, enemyBounds.width, enemyBounds.height);
+            }
+        }
 
-    shapeRenderer.end();
+        shapeRenderer.end();
+    }
 }
     
 
@@ -188,6 +291,20 @@ public boolean checkCollision(Rectangle objectBounds) {
     }
 
     public void update(float dt) {
+        // Actualizar enemigos
+        for (int i = enemies.size - 1; i >= 0; i--) {
+            Enemy enemy = enemies.get(i);
+            enemy.act(dt);
+            
+            // Verificar colisión con el jugador
+            for (CollisionListener listener : collisionListeners) {
+                if (enemy.collidesWith(listener.getCollisionBounds())) {
+                    System.out.println("¡Enemigo tocó al jugador!");
+                    listener.onCollision();
+                }
+            }
+        }
+        
         // Actualizar bombas
         for (int i = bombs.size - 1; i >= 0; i--) {
             Bomb bomb = bombs.get(i);
@@ -201,22 +318,33 @@ public boolean checkCollision(Rectangle objectBounds) {
                 // Actualiza las explosiones
                 for (ExplosionPart explosion : explosions) {
                     explosion.act(dt); // Actualizar la animación de la explosión
-                     // Verifica colisiones con bloques normales
+                    
+                    // Verifica colisiones con bloques normales
                     for (Block block : blocks) {
                         if (explosion.getBounds().overlaps(block.getBounds())) {
-                        // Destruir el bloque normal
-                        blocks.removeValue(block, true);
-                        break;
+                            // Destruir el bloque normal
+                            blocks.removeValue(block, true);
+                            break;
+                        }
+                    }
+                    
+                    // Verifica colisiones con enemigos
+                    for (int j = enemies.size - 1; j >= 0; j--) {
+                        Enemy enemy = enemies.get(j);
+                        if (enemy.isAlive() && explosion.getBounds().overlaps(enemy.getBounds())) {
+                            enemy.kill();
+                            enemies.removeIndex(j);
+                            System.out.println("¡Enemigo eliminado por explosión!");
                         }
                     }
                      
-                     // Verifica colisiones con el jugador 
+                    // Verifica colisiones con el jugador 
                     for (CollisionListener listener : collisionListeners) {
                         if (explosion.getBounds().overlaps(listener.getCollisionBounds())) {
-                        System.out.println("Colisión detectada con el jugador");
-                        listener.onCollision();
+                            System.out.println("Colisión detectada con el jugador");
+                            listener.onCollision();
                         }
-                     }
+                    }
                 }
     
                 // Si todas las explosiones han terminado, elimina la bomba
@@ -242,6 +370,30 @@ public boolean checkCollision(Rectangle objectBounds) {
 
     public void addCollisionListener(CollisionListener listener) {
         collisionListeners.add(listener);
+    }
+
+    /**
+     * Activa o desactiva el modo debug.
+     * Cuando está activo, se dibujan los hitboxes de colisión.
+     * @param enabled true para activar, false para desactivar
+     */
+    public void setDebugMode(boolean enabled) {
+        this.debugMode = enabled;
+    }
+    
+    /**
+     * Indica si el modo debug está activo.
+     * @return true si está activo, false si no
+     */
+    public boolean isDebugMode() {
+        return debugMode;
+    }
+    
+    /**
+     * Alterna el modo debug (toggle).
+     */
+    public void toggleDebugMode() {
+        this.debugMode = !this.debugMode;
     }
 
     public void renderCollisionBounds() {

@@ -16,7 +16,6 @@ public class Bomberman extends ApplicationAdapter {
     private statesInterface currentState;
     private OrthographicCamera camera;
     private Viewport viewport;
-    private final ConstantValues constValues = new ConstantValues();
 
      // Constructor privado
      private Bomberman() {}

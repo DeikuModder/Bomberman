@@ -19,7 +19,6 @@ public class DeathState implements statesInterface {
     private Stage stage;
     private Texture background;
     private Texture buttonTexture;
-    private Texture buttonTexturePressed;
     private ImageButton button;
 
     public DeathState() {
@@ -65,6 +64,5 @@ public class DeathState implements statesInterface {
         stage.dispose();
         background.dispose();
         buttonTexture.dispose();
-        buttonTexturePressed.dispose();
     }
 }

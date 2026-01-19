@@ -18,7 +18,7 @@ import com.bomberman.States.DeathState;
 
 public class Player extends Actor implements Disposable, CollisionListener {
     private int lifebar = 25;
-    private int maxBombs = 10;  // Cantidad máxima de bombas
+    private int maxBombs = 2;  // Cantidad máxima de bombas
     private int currentBombs = 0;  // Bombas colocadas actualmente
     private int bombSize = 1;  // Tamaño de las explosiones (esto puede cambiar con power-ups)
     private float bombTimer = 5f;  // Tiempo hasta que la bomba explota (en segundos)
@@ -71,8 +71,24 @@ public class Player extends Actor implements Disposable, CollisionListener {
          // Inicializa el área de colisión del jugador
          playerBounds = new Rectangle(position.x, position.y, width, height);
 
-        // Create animations
-        TextureRegion[][] temp = new TextureRegion(player).split(player.getWidth() , player.getHeight());
+        // Crear animaciones usando el método helper
+        playerAnimation = createAnimation(player, 1, 0.3f);
+        rightAnimation = createAnimation(rightTexture, 4, 0.3f);
+        leftAnimation = createAnimation(leftTexture, 4, 0.3f);
+        upAnimation = createAnimation(upTexture, 4, 0.3f);
+        downAnimation = createAnimation(downTexture, 4, 0.3f);
+    }
+    
+    /**
+     * Crea una animación a partir de una textura dividida en frames horizontales.
+     * 
+     * @param texture La textura que contiene los frames de la animación
+     * @param frameCount Número de frames horizontales en la textura
+     * @param frameDuration Duración de cada frame en segundos
+     * @return La animación creada
+     */
+    private Animation<TextureRegion> createAnimation(Texture texture, int frameCount, float frameDuration) {
+        TextureRegion[][] temp = new TextureRegion(texture).split(texture.getWidth() / frameCount, texture.getHeight());
         TextureRegion[] frames = new TextureRegion[temp.length * temp[0].length];
         int index = 0;
         for (int i = 0; i < temp.length; i++) {
@@ -80,61 +96,26 @@ public class Player extends Actor implements Disposable, CollisionListener {
                 frames[index++] = temp[i][j];
             }
         }
-
-        playerAnimation = new Animation<>(0.3f, frames);
-        
-        // Create right animation
-    temp = new TextureRegion(rightTexture).split(rightTexture.getWidth() / 4, rightTexture.getHeight());
-    frames = new TextureRegion[temp.length * temp[0].length];
-    index = 0;
-    for (int i = 0; i < temp.length; i++) {
-        for (int j = 0; j < temp[i].length; j++) {
-            frames[index++] = temp[i][j];
-        }
+        return new Animation<>(frameDuration, frames);
     }
-    rightAnimation = new Animation<>(0.3f, frames);
-
-    // Create left animation
-    temp = new TextureRegion(leftTexture).split(leftTexture.getWidth() / 4, leftTexture.getHeight());
-    frames = new TextureRegion[temp.length * temp[0].length];
-    index = 0;
-    for (int i = 0; i < temp.length; i++) {
-        for (int j = 0; j < temp[i].length; j++) {
-            frames[index++] = temp[i][j];
-        }
-    }
-    leftAnimation = new Animation<>(0.3f, frames);
-
-    // Create up animation
-    temp = new TextureRegion(upTexture).split(upTexture.getWidth() / 4, upTexture.getHeight());
-    frames = new TextureRegion[temp.length * temp[0].length];
-    index = 0;
-    for (int i = 0; i < temp.length; i++) {
-        for (int j = 0; j < temp[i].length; j++) {
-            frames[index++] = temp[i][j];
-        }
-    }
-    upAnimation = new Animation<>(0.3f, frames);
-
-    // Create down animation
-    temp = new TextureRegion(downTexture).split(downTexture.getWidth() / 4, downTexture.getHeight());
-    frames = new TextureRegion[temp.length * temp[0].length];
-    index = 0;
-    for (int i = 0; i < temp.length; i++) {
-        for (int j = 0; j < temp[i].length; j++) {
-            frames[index++] = temp[i][j];
-        }
-    }
-    downAnimation = new Animation<>(0.3f, frames);
-}
 public Bomb placeBomb(Texture bombTexture) {
     if (currentBombs < maxBombs) {
-        // Alinear la posición del jugador a la cuadrícula
-        float bombX = Math.round(position.x / bombSize) * bombSize;
-        float bombY = Math.round(position.y / bombSize) * bombSize;
+        // Alinear la posición del jugador a la cuadrícula (usar GRID_SIZE, no bombSize)
+        float bombX = Math.round(position.x / GRID_SIZE) * GRID_SIZE;
+        float bombY = Math.round(position.y / GRID_SIZE) * GRID_SIZE;
 
         currentBombs++;
-        return new Bomb(bombTexture, bombX, bombY, bombTimer, bombSize);
+        Bomb bomb = new Bomb(bombTexture, bombX, bombY, bombTimer, bombSize);
+        
+        // Registrar listener para recuperar la bomba cuando explote
+        bomb.setExplosionListener(new Bomb.BombExplodedListener() {
+            @Override
+            public void onBombExploded() {
+                bombExploded();
+            }
+        });
+        
+        return bomb;
     }
     return null;
 }

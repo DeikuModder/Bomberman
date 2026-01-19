@@ -12,6 +12,7 @@ public class Bomb extends Actor {
     private Animation<TextureRegion> bombAnimation;
     private float stateTime;
     private boolean isExploded;
+    private boolean hasNotifiedExplosion;  // Para notificar solo una vez cuando explota
     private float explosionDelay;  // Tiempo antes de explotar
     private int explosionRadius;   // Radio de la explosión en número de tiles
     private Array<ExplosionPart> explosions;
@@ -19,11 +20,18 @@ public class Bomb extends Actor {
     private float height;
     private float x;
     private float y;
+    private BombExplodedListener explosionListener;  // Listener para notificar cuando explota
+
+    // Interfaz para notificar cuando la bomba explota
+    public interface BombExplodedListener {
+        void onBombExploded();
+    }
 
     public Bomb(Texture bombTexture, float x, float y, float explosionDelay, int explosionRadius) {
         this.explosionDelay = explosionDelay;
         this.explosionRadius = explosionRadius;
         this.isExploded = false;
+        this.hasNotifiedExplosion = false;
         this.x = x;
         this.y = y;
         this.width = 32; // Establece el ancho de la textura
@@ -59,48 +67,56 @@ public class Bomb extends Actor {
     private void explode() {
         isExploded = true;
         generateExplosions();
+        // Notificar al listener que la bomba ha explotado
+        if (explosionListener != null && !hasNotifiedExplosion) {
+            hasNotifiedExplosion = true;
+            explosionListener.onBombExploded();
+        }
+    }
+
+    // Método para establecer el listener de explosión
+    public void setExplosionListener(BombExplodedListener listener) {
+        this.explosionListener = listener;
     }
 
     private void generateExplosions() {
-        // Texturas para cada parte de la explosión
-        Texture centerTexture = new Texture("center.png");
-        Texture sideTexture = new Texture("side2.png");
-        Texture cornerTexture = new Texture("corner2.png");
-        Texture sidedownTexture = new Texture("sidedown.png");
-        Texture sideupTexture = new Texture("sideup.png");
-        Texture cornerupTexture = new Texture("cornerup.png");
-        Texture cornerdownTexture = new Texture ("cornerdown.png");
+        // Obtener texturas del gestor (Singleton - evita memory leak)
+        ExplosionTextures textures = ExplosionTextures.getInstance();
+        if (!textures.isLoaded()) {
+            textures.load();
+        }
+        
         // Añadir el centro de la explosión
-        explosions.add(new ExplosionPart(getX(), getY(), "center", centerTexture));
+        explosions.add(new ExplosionPart(getX(), getY(), "center", textures.getCenterTexture()));
     
         // Generar las explosiones en cada dirección
         for (int i = 1; i <= explosionRadius; i++) {
             // Arriba
             if (i == explosionRadius) {
-                explosions.add(new ExplosionPart(getX(), getY() + i * 32, "corner_up", cornerupTexture));
+                explosions.add(new ExplosionPart(getX(), getY() + i * 32, "corner_up", textures.getCornerUpTexture()));
             } else {
-                explosions.add(new ExplosionPart(getX(), getY() + i * 32, "side_up", sideupTexture));
+                explosions.add(new ExplosionPart(getX(), getY() + i * 32, "side_up", textures.getSideUpTexture()));
             }
     
             // Abajo
             if (i == explosionRadius) {
-                explosions.add(new ExplosionPart(getX(), getY() - i * 32, "corner_down", cornerdownTexture));
+                explosions.add(new ExplosionPart(getX(), getY() - i * 32, "corner_down", textures.getCornerDownTexture()));
             } else {
-                explosions.add(new ExplosionPart(getX(), getY() - i * 32, "side_down", sidedownTexture));
+                explosions.add(new ExplosionPart(getX(), getY() - i * 32, "side_down", textures.getSideDownTexture()));
             }
     
             // Derecha
             if (i == explosionRadius) {
-                explosions.add(new ExplosionPart(getX() + i * 32, getY(), "corner_right", cornerTexture));
+                explosions.add(new ExplosionPart(getX() + i * 32, getY(), "corner_right", textures.getCornerTexture()));
             } else {
-                explosions.add(new ExplosionPart(getX() + i * 32, getY(), "side_right", sideTexture));
+                explosions.add(new ExplosionPart(getX() + i * 32, getY(), "side_right", textures.getSideTexture()));
             }
     
             // Izquierda
             if (i == explosionRadius) {
-                explosions.add(new ExplosionPart(getX() - i * 32, getY(), "corner_left", cornerTexture));
+                explosions.add(new ExplosionPart(getX() - i * 32, getY(), "corner_left", textures.getCornerTexture()));
             } else {
-                explosions.add(new ExplosionPart(getX() - i * 32, getY(), "side_left", sideTexture));
+                explosions.add(new ExplosionPart(getX() - i * 32, getY(), "side_left", textures.getSideTexture()));
             }
         }
     }
