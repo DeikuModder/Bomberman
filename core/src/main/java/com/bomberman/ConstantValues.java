@@ -21,7 +21,7 @@ public final class ConstantValues {
     
     // Tamaño de los bloques/tiles
     public static final int BLOCK_SIZE = 32;
-    public static final int GRID_SIZE = 32;
+    public static final int GRID_SIZE = BLOCK_SIZE;
     
     // Configuración del jugador
     public static final int DEFAULT_PLAYER_LIVES = 25;
@@ -32,4 +32,13 @@ public final class ConstantValues {
     
     // Configuración del mapa
     public static final int DEFAULT_BLOCK_COUNT = 35;
+    public static final int DEFAULT_ENEMY_COUNT = 5;
+    
+    // Spawn del jugador (en tiles de la cuadrícula)
+    public static final int PLAYER_SPAWN_TILE_X = 3;
+    public static final int PLAYER_SPAWN_TILE_Y = 3;
+    
+    // Zonas seguras de generación (en tiles)
+    public static final int SPAWN_SAFE_RADIUS = 2; // Cajas no se generan cerca del jugador
+    public static final int ENEMY_SPAWN_MIN_DISTANCE = 6; // Enemigos no se generan tan cerca del jugador
 }

@@ -11,17 +11,18 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Disposable;
 import com.bomberman.Bomberman;
+import com.bomberman.ConstantValues;
 import com.bomberman.Scenario.TileMap;
 import com.bomberman.Scenario.TileMap.CollisionListener;
 import com.bomberman.States.DeathState;
 
 
 public class Player extends Actor implements Disposable, CollisionListener {
-    private int lifebar = 25;
-    private int maxBombs = 2;  // Cantidad máxima de bombas
+    private int lifebar = ConstantValues.DEFAULT_PLAYER_LIVES;
+    private int maxBombs = ConstantValues.DEFAULT_MAX_BOMBS;  // Cantidad máxima de bombas
     private int currentBombs = 0;  // Bombas colocadas actualmente
     private int bombSize = 1;  // Tamaño de las explosiones (esto puede cambiar con power-ups)
-    private float bombTimer = 5f;  // Tiempo hasta que la bomba explota (en segundos)
+    private float bombTimer = ConstantValues.DEFAULT_BOMB_TIMER;  // Tiempo hasta que la bomba explota (en segundos)
     private Texture player;
     private Animation<TextureRegion> playerAnimation;
     private Animation<TextureRegion> rightAnimation;
@@ -35,17 +36,17 @@ public class Player extends Actor implements Disposable, CollisionListener {
     private float stateTime;
     private Vector2 position;  
     private TileMap tileMap;
-    private float speed = 300f; // velocidad del personaje (píxeles por segundo)
+    private float speed = ConstantValues.DEFAULT_PLAYER_SPEED; // velocidad del personaje (píxeles por segundo)
     private float targetX, targetY; // posición objetivo del personaje
     private float width;
     private float height;
     private int gridX;
     private int gridY;
-    private final float GRID_SIZE = 32;
+    private final float GRID_SIZE = ConstantValues.GRID_SIZE;
     private boolean isMoving = false;
     private Rectangle playerBounds; // Rectángulo del jugador para colisiones
     private float invulnerabilityTimer = 0;
-    private final float INVULNERABILITY_DURATION = 1.0f;  // 1 segundo de invulnerabilidad
+    private final float INVULNERABILITY_DURATION = ConstantValues.INVULNERABILITY_DURATION;  // 1 segundo de invulnerabilidad
 
     public Player(Texture texture, TileMap tileMap, float x, float y) {
         this.player = texture;
@@ -99,25 +100,30 @@ public class Player extends Actor implements Disposable, CollisionListener {
         return new Animation<>(frameDuration, frames);
     }
 public Bomb placeBomb(Texture bombTexture) {
-    if (currentBombs < maxBombs) {
-        // Alinear la posición del jugador a la cuadrícula (usar GRID_SIZE, no bombSize)
-        float bombX = Math.round(position.x / GRID_SIZE) * GRID_SIZE;
-        float bombY = Math.round(position.y / GRID_SIZE) * GRID_SIZE;
-
-        currentBombs++;
-        Bomb bomb = new Bomb(bombTexture, bombX, bombY, bombTimer, bombSize);
-        
-        // Registrar listener para recuperar la bomba cuando explote
-        bomb.setExplosionListener(new Bomb.BombExplodedListener() {
-            @Override
-            public void onBombExploded() {
-                bombExploded();
-            }
-        });
-        
-        return bomb;
+    if (currentBombs >= maxBombs) {
+        return null;
     }
-    return null;
+    // Alinear la posición del jugador a la cuadrícula (usar GRID_SIZE, no bombSize)
+    float bombX = Math.round(position.x / GRID_SIZE) * GRID_SIZE;
+    float bombY = Math.round(position.y / GRID_SIZE) * GRID_SIZE;
+
+    // No se puede colocar una bomba donde ya hay otra
+    if (tileMap.isBombAt(bombX, bombY)) {
+        return null;
+    }
+
+    currentBombs++;
+    Bomb bomb = new Bomb(bombTexture, bombX, bombY, bombTimer, bombSize, tileMap);
+
+    // Registrar listener para recuperar la bomba cuando explote
+    bomb.setExplosionListener(new Bomb.BombExplodedListener() {
+        @Override
+        public void onBombExploded() {
+            bombExploded();
+        }
+    });
+
+    return bomb;
 }
 
 public void bombExploded() {
@@ -230,4 +236,12 @@ public void bombExploded() {
         }
     }
 }
+
+    public int getLifebar() {
+        return lifebar;
+    }
+
+    public boolean isAlive() {
+        return lifebar > 0;
+    }
 }

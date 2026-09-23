@@ -18,12 +18,12 @@ import com.bomberman.Bomberman;
 import com.bomberman.ConstantValues;
 import com.badlogic.gdx.audio.Music;
 
-public class MenuState implements statesInterface {
+public class MenuState implements GameState {
     private OrthographicCamera camera;
     private Viewport viewport;
     private Texture background;
     private SpriteBatch batch;
-    private Texture Title;
+    private Texture title;
     private Button playButton;
     private Stage stage;
     private Music music;
@@ -35,7 +35,7 @@ public class MenuState implements statesInterface {
         viewport = new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), camera);
         viewport.apply();
         background = new Texture("background.jpeg");
-        Title = new Texture("BombermanTitle.png");
+        title = new Texture("BombermanTitle.png");
         batch = new SpriteBatch();
         stage = new Stage(viewport, batch);
       //  Music music = Gdx.audio.newMusic(Gdx.files.internal("your_music_file.mp3"));
@@ -58,7 +58,7 @@ public class MenuState implements statesInterface {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 // Llamar al método startGame() de la clase Bomberman
-                ((Bomberman) Gdx.app.getApplicationListener()).startGame();
+                Bomberman.getInstance().startGame();
             }
         });
         
@@ -78,7 +78,7 @@ public class MenuState implements statesInterface {
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
         batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        batch.draw(Title, 30, 370, 300, 300);
+        batch.draw(title, 30, 370, 300, 300);
         batch.end();
         stage.draw();
     }

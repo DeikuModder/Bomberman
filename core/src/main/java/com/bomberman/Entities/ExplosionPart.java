@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.bomberman.ConstantValues;
 
 public class ExplosionPart extends Actor {
     private Animation<TextureRegion> explosionAnimation;
@@ -16,7 +17,7 @@ public class ExplosionPart extends Actor {
     public ExplosionPart(float x, float y, String type, Texture texture) {
         this.typeOrientation = type;
         // Asumiendo que el sprite está dividido en frames de 32x32
-        TextureRegion[][] temp = TextureRegion.split(texture, 32, 32);
+        TextureRegion[][] temp = TextureRegion.split(texture, ConstantValues.BLOCK_SIZE, ConstantValues.BLOCK_SIZE);
         TextureRegion[] frames = new TextureRegion[temp.length * temp[0].length];
         int index = 0;
         for (int i = 0; i < temp.length; i++) {
@@ -62,7 +63,6 @@ public class ExplosionPart extends Actor {
         stateTime += delta;
         if (explosionAnimation.isAnimationFinished(stateTime)) {
             isFinished = true; // Marcar la explosión como terminada
-            remove(); // Eliminar la explosión del escenario
         }
     }
 
@@ -70,7 +70,7 @@ public class ExplosionPart extends Actor {
     public void draw(Batch batch, float parentAlpha) {
         if (!isFinished) {
             TextureRegion frame = explosionAnimation.getKeyFrame(stateTime, false);
-            batch.draw(frame, getX(), getY(), 32, 32);
+            batch.draw(frame, getX(), getY(), ConstantValues.BLOCK_SIZE, ConstantValues.BLOCK_SIZE);
         }
     }
 
@@ -79,6 +79,6 @@ public class ExplosionPart extends Actor {
     }
     
      public Rectangle getBounds() {
-        return new Rectangle(getX(), getY(), 32, 32);
+        return new Rectangle(getX(), getY(), ConstantValues.BLOCK_SIZE, ConstantValues.BLOCK_SIZE);
     }
 }

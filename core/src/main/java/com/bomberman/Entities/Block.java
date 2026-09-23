@@ -8,16 +8,19 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.bomberman.Assets;
+import com.bomberman.ConstantValues;
 
 public class Block extends Actor {
+    private static final int SIZE = ConstantValues.BLOCK_SIZE;
     private Texture texture;
     private Rectangle bounds;
 
     public Block(float x, float y) {
-        this.texture = new Texture("block2.png"); 
-        this.bounds = new Rectangle(x, y, 32, 32); 
+        this.texture = Assets.blockTexture(); // Textura compartida (evita cargar una textura por bloque)
+        this.bounds = new Rectangle(x, y, SIZE, SIZE);
         setPosition(x, y);
-        setSize(32, 32);
+        setSize(SIZE, SIZE);
     }
 
     @Override
@@ -35,6 +38,6 @@ public class Block extends Actor {
     }
 
     public void dispose() {
-        texture.dispose();
+        // La textura es compartida (Assets.blockTexture) y se libera en Assets.disposeAll();
     }
 }

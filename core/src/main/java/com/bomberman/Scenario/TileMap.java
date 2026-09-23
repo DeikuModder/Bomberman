@@ -24,8 +24,9 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
+import com.bomberman.ConstantValues;
 
-public class TileMap {
+public class TileMap implements Bomb.BlockCheck {
     private TiledMap map;
     private OrthogonalTiledMapRenderer mapRenderer;
     private Array<Rectangle> collisionRectangles;
@@ -33,8 +34,8 @@ public class TileMap {
     private Array<Bomb> bombs = new Array<>();
     private Array<Block> blocks = new Array<>();
     private Array<Enemy> enemies = new Array<>();
-    private int totalblocks = 35;
-    private int totalEnemies = 5;  // Número de enemigos a generar
+    private int totalblocks = ConstantValues.DEFAULT_BLOCK_COUNT;
+    private int totalEnemies = ConstantValues.DEFAULT_ENEMY_COUNT;  // Número de enemigos a generar
     private List<CollisionListener> collisionListeners = new ArrayList<>();
     
     // Flag para activar/desactivar modo debug (visualización de hitboxes)
@@ -65,22 +66,27 @@ public class TileMap {
         int tileWidth = (int) groundLayer.getTileWidth();
         int tileHeight = (int) groundLayer.getTileHeight();
         
-        // Zona segura alrededor del spawn del jugador (esquina inferior izquierda)
-        int safeZoneX = 5;
-        int safeZoneY = 5;
+        totalEnemies = count;
         
         for (int i = 0; i < count; i++) {
             int x, y;
             int attempts = 0;
-            int maxAttempts = 100;
+            int maxAttempts = 200;
             
-            // Encontrar una posición válida
+            // Encontrar una posición válida que no esté ocupada y alejada del jugador
             do {
-                x = MathUtils.random(safeZoneX, mapWidth - 2);
-                y = MathUtils.random(safeZoneY, mapHeight - 2);
+                x = MathUtils.random(mapWidth - 1);
+                y = MathUtils.random(mapHeight - 1);
                 attempts++;
-            } while ((blockLayer.getCell(x, y) != null || isBlockAt(x * tileWidth, y * tileHeight)) 
-                     && attempts < maxAttempts);
+                
+                boolean blocked = blockLayer.getCell(x, y) != null || isBlockAt(x * tileWidth, y * tileHeight);
+                boolean tooCloseToPlayer = Math.abs(x - ConstantValues.PLAYER_SPAWN_TILE_X)
+                        + Math.abs(y - ConstantValues.PLAYER_SPAWN_TILE_Y) < ConstantValues.ENEMY_SPAWN_MIN_DISTANCE;
+                
+                if (!blocked && !tooCloseToPlayer) {
+                    break;
+                }
+            } while (attempts < maxAttempts);
             
             if (attempts < maxAttempts) {
                 // Crear el enemigo con referencia al checker de colisiones
@@ -88,6 +94,8 @@ public class TileMap {
                     bounds -> checkCollisionForEnemy(bounds));
                 enemies.add(enemy);
                 System.out.println("Enemy spawned at: (" + x + ", " + y + ")");
+            } else {
+                System.out.println("No se encontró posición válida para un enemigo");
             }
         }
     }
@@ -151,7 +159,6 @@ public class TileMap {
                         if (tileId == 2) {
                             Rectangle rectangle = new Rectangle(x * tileWidth, y * tileHeight, tileWidth, tileHeight);
                             collisionRectangles.add(rectangle);
-                            System.out.println("Collision rectangle added at: " + rectangle);
                         }
                     }
                 }
@@ -165,20 +172,35 @@ public class TileMap {
     
         int mapWidth = groundLayer.getWidth();
         int mapHeight = groundLayer.getHeight();
+        int tileWidth = (int) groundLayer.getTileWidth();
+        int tileHeight = (int) groundLayer.getTileHeight();
     
         for (int i = 0; i < blockCount; i++) {
-            int x, y;
+            int x = 0, y = 0;
+            int attempts = 0;
+            int maxAttempts = 200;
     
-            // Encontrar una posición aleatoria que no esté ocupada por un bloque en la capa "blocks"
+            // Encontrar una posición aleatoria libre, lejos del spawn del jugador
             do {
                 x = MathUtils.random(mapWidth - 1);
                 y = MathUtils.random(mapHeight - 1);
-            } while (blockLayer.getCell(x, y) != null);
+                attempts++;
     
-            // Crear y agregar el bloque
-            Block block = new Block(x * groundLayer.getTileWidth(), y * groundLayer.getTileHeight());
-            blocks.add(block);
-            System.out.println("Block added at: (" + x + ", " + y + ")");
+                boolean occupied = blockLayer.getCell(x, y) != null || isBlockAt(x * tileWidth, y * tileHeight);
+                boolean inSafeZone = Math.abs(x - ConstantValues.PLAYER_SPAWN_TILE_X) <= ConstantValues.SPAWN_SAFE_RADIUS
+                        && Math.abs(y - ConstantValues.PLAYER_SPAWN_TILE_Y) <= ConstantValues.SPAWN_SAFE_RADIUS;
+    
+                if (!occupied && !inSafeZone) {
+                    break;
+                }
+            } while (attempts < maxAttempts);
+    
+            if (attempts < maxAttempts) {
+                // Crear y agregar el bloque
+                Block block = new Block(x * tileWidth, y * tileHeight);
+                blocks.add(block);
+                System.out.println("Block added at: (" + x + ", " + y + ")");
+            }
         }
     }
 
@@ -268,6 +290,51 @@ public boolean checkCollision(Rectangle objectBounds) {
     return false;
 }
 
+    /**
+     * Indica si una celda del mundo bloquea el paso de las explosiones
+     * (muros del mapa o bloques destructibles).
+     */
+    @Override
+    public boolean isBlocked(float worldX, float worldY) {
+        for (Rectangle rect : collisionRectangles) {
+            if (rect.contains(worldX, worldY)) {
+                return true;
+            }
+        }
+        for (Block block : blocks) {
+            if (block.getBounds().contains(worldX, worldY)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Indica si ya existe una bomba en la celda indicada.
+     */
+    public boolean isBombAt(float worldX, float worldY) {
+        for (Bomb bomb : bombs) {
+            if (bomb.getBounds().overlaps(new Rectangle(worldX, worldY, ConstantValues.BLOCK_SIZE, ConstantValues.BLOCK_SIZE))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Cantidad de enemigos vivos en el mapa.
+     */
+    public int getEnemiesLeft() {
+        return enemies.size;
+    }
+
+    /**
+     * Condición de victoria: no queda ningún enemigo vivo.
+     */
+    public boolean winConditionMet() {
+        return totalEnemies > 0 && enemies.size == 0;
+    }
+
     public void dispose() {
         map.dispose();
         mapRenderer.dispose();
@@ -320,10 +387,11 @@ public boolean checkCollision(Rectangle objectBounds) {
                     explosion.act(dt); // Actualizar la animación de la explosión
                     
                     // Verifica colisiones con bloques normales
-                    for (Block block : blocks) {
+                    for (int bi = blocks.size - 1; bi >= 0; bi--) {
+                        Block block = blocks.get(bi);
                         if (explosion.getBounds().overlaps(block.getBounds())) {
                             // Destruir el bloque normal
-                            blocks.removeValue(block, true);
+                            blocks.removeIndex(bi);
                             break;
                         }
                     }

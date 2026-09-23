@@ -6,14 +6,14 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.bomberman.States.GameState;
 import com.bomberman.States.MenuState;
 import com.bomberman.States.PlayState;
-import com.bomberman.States.statesInterface;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class Bomberman extends ApplicationAdapter {
     private static Bomberman instance;
-    private statesInterface currentState;
+    private GameState currentState;
     private OrthographicCamera camera;
     private Viewport viewport;
 
@@ -35,7 +35,7 @@ public class Bomberman extends ApplicationAdapter {
         setState(new MenuState()); 
     }
 
-    public void setState(statesInterface state) {
+    public void setState(GameState state) {
         if (currentState != null) {
             currentState.dispose();
         }
@@ -61,6 +61,7 @@ public class Bomberman extends ApplicationAdapter {
         if (currentState != null) {
             currentState.dispose();
         }
+        Assets.disposeAll();
     }
     
     public void startGame() {
